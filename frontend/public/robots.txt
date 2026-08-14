@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Private / authenticated areas
+Disallow: /cart
+Disallow: /wishlist
+Disallow: /orders
+Disallow: /place-order
+Disallow: /login
+Disallow: /verify
+Disallow: /profile
+Disallow: /trackorder
+Disallow: /account
+Disallow: /checkout
+
+# API & internal
+Disallow: /api/
+
+# Crawl-delay for polite bots
+Crawl-delay: 10
+
+Sitemap: https://aharyas.com/sitemap.xml

@@ -1,0 +1,148 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+body {
+  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-x: hidden;
+  color: var(--color-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes loader-bar {
+  0%, 100% { height: 8px;  opacity: 0.2; }
+  50%       { height: 24px; opacity: 1;   }
+}
+
+.animate-fadeIn  { animation: fadeIn  0.2s ease-out forwards; }
+.animate-slideUp { animation: slideUp 0.25s ease-out forwards; }
+.animate-slideIn { animation: slideIn 0.2s ease-out forwards; }
+
+.page-enter {
+  animation: fadeIn 0.18s ease-out forwards;
+}
+
+.noto-serif-thai {
+  font-family: "Noto Serif Thai", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+.sticky {
+  position: sticky;
+  backdrop-filter: blur(8px);
+  transition: var(--transition-standard);
+}
+
+a.active hr {
+  display: block;
+}
+
+@media (max-width: 640px) {
+  a.active {
+    background-color: #000;
+    color: #fff;
+    transition: var(--transition-standard);
+  }
+}
+
+:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 3px;
+}
+
+img {
+  display: block;
+}
+img[loading="lazy"] {
+  background-color: #f3f3f3;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+  button.no-min-h, a.no-min-h {
+    min-height: unset;
+  }
+}
+
+.price {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes pageFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.page-enter {
+  animation: pageFade 0.2s ease-out both;
+}
+
+/* Hide WebKit native clear button in search inputs */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer-gradient {
+  position: relative;
+  overflow: hidden;
+  background: #f4f4f5;
+}
+.shimmer-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 25%, #e4e4e7 50%, transparent 75%);
+  animation: shimmer 1.5s infinite ease-in-out;
+  will-change: transform;
+}
+
+/* ── Scrollbar hide ── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }

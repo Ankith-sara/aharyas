@@ -1,0 +1,23 @@
+{
+  "rewrites": [
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://aharya-y1hh.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml"
+        }
+      ]
+    }
+  ]
+}

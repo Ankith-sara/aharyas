@@ -1,0 +1,40 @@
+import mongoose from "mongoose";
+
+const productSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    slug: { type: String, unique: true, sparse: true },
+    description: { type: String, required: true },
+    price: { type: Number, required: true },
+    discount: { type: Number, default: 0, min: 0, max: 100 },
+    images: { type: Array, required: true },
+    category: { type: String, required: true },
+    subCategory: { type: String, required: true },
+    company: { type: String, required: true, default: 'Independent', trim: true },
+    sizes: { type: Array, required: true },
+    bestseller: { type: Boolean },
+    visible: { type: Boolean, default: true },
+    artisanRegion: { type: String, trim: true },
+    sold: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
+    averageRating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
+    date: { type: Number, required: true },
+    adminId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'user',
+        required: true 
+    }
+}, { timestamps: true });
+
+productSchema.index({ name: 'text', description: 'text' }); 
+productSchema.index({ category: 1, price: 1 });
+productSchema.index({ artisanRegion: 1 });
+productSchema.index({ createdAt: -1 });
+productSchema.index({ bestseller: 1 });
+productSchema.index({ company: 1 });
+productSchema.index({ adminId: 1 });
+productSchema.index({ visible: 1 });
+
+const productModel = mongoose.models.product || mongoose.model('product', productSchema);
+
+export default productModel;

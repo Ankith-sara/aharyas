@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Hind+Mysuru:wght@300;400;500;600;700&family=Oswald:wght@200..700&family=Outfit:wght@100..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    font-family: Oswald;
+}
+
+select,
+input,
+textarea {
+    border: 1px solid #c2c2c2;
+    outline-color: #3c2a21;
+    border-radius: 4px;
+}
+
+.active {
+    background-color: #ffebf5;
+    border-color: #3c2a21;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn  { animation: fadeIn  0.2s ease-out forwards; }
+.animate-slideUp { animation: slideUp 0.25s ease-out forwards; }
+
+/* Rich Text Editor Styling */
+.rich-text-editor-content {
+    font-family: Oswald, sans-serif !important;
+}
+
+.rich-text-editor-content ul {
+    list-style-type: disc !important;
+    margin-left: 1.25rem !important;
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.rich-text-editor-content li {
+    list-style-type: disc !important;
+    margin-left: 0.5rem !important;
+}
+
+.rich-text-editor-content h3 {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.rich-text-editor-content b, 
+.rich-text-editor-content strong {
+    font-weight: 700 !important;
+}
+
+.rich-text-editor-content u {
+    text-decoration: underline !important;
+}
+
+.rich-text-editor-content i,
+.rich-text-editor-content em {
+    font-style: italic !important;
+}
+
+/* Placeholder support for contentEditable */
+.rich-text-editor-content[data-placeholder]:empty::before {
+    content: attr(data-placeholder);
+    color: #9ca3af;
+    font-style: italic;
+    font-family: Oswald, sans-serif;
+    pointer-events: none;
+    display: block;
+}

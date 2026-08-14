@@ -1,0 +1,42 @@
+{
+  "name": "frontend",
+  "private": true,
+  "version": "2.0.0",
+  "scripts": {
+    "dev": "next dev -p 3141",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aharyas/types": "file:../packages/types",
+    "@aharyas/utils": "file:../packages/utils",
+    "@aharyas/validation": "file:../packages/validation",
+    "@aharyas/ui": "file:../packages/ui",
+    "@react-oauth/google": "^0.13.4",
+    "@vercel/analytics": "^2.0.1",
+    "axios": "^1.7.9",
+    "clsx": "^2.1.1",
+    "country-state-city": "^3.2.1",
+    "jwt-decode": "^4.0.0",
+    "lucide-react": "^0.475.0",
+    "next": "^15.1.7",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-toastify": "^10.0.6",
+    "tailwind-merge": "^3.0.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.20.1",
+    "eslint-config-next": "^15.1.7",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3"
+  }
+}

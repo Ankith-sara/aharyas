@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static fallback sitemap — served by the CDN / Vite dev server.
+  The canonical, product-aware sitemap is generated dynamically by the backend
+  at https://aharyas.com/sitemap.xml and cached for 6 hours.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Main Pages -->
+  <url><loc>https://aharyas.com/</loc>                  <priority>1.0</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/about</loc>             <priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://aharyas.com/contact</loc>           <priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://aharyas.com/faqs</loc>              <priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://aharyas.com/support</loc>           <priority>0.5</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://aharyas.com/assistant</loc>         <priority>0.6</priority><changefreq>monthly</changefreq></url>
+
+  <!-- Shopping -->
+  <url><loc>https://aharyas.com/shop/collection</loc>   <priority>0.9</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/sell</loc>              <priority>0.6</priority><changefreq>monthly</changefreq></url>
+
+  <!-- Category browse pages -->
+  <url><loc>https://aharyas.com/shop/women</loc>            <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/men</loc>              <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/handmade-toys</loc>     <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/bags-and-purses</loc>   <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/daily-essentials</loc>  <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/jewelry</loc>           <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/footwear</loc>          <priority>0.8</priority><changefreq>daily</changefreq></url>
+
+  <!-- Subcategory browse pages -->
+  <url><loc>https://aharyas.com/shop/tops</loc>                  <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/dresses</loc>               <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/women-co-ord-sets</loc>     <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/women-shirts</loc>          <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/sarees</loc>                <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/men-shirts</loc>            <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/kurtas</loc>                <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/men-co-ord-sets</loc>       <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/trousers</loc>              <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/kondapalli-bommalu</loc>    <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/paintings</loc>             <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/cheriyal-masks</loc>        <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/handbags</loc>              <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/zardozi-purses</loc>        <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/journals</loc>             <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/pens</loc>                 <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/scented-candles</loc>       <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/combs</loc>                <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/cups</loc>                 <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/thermal-flask</loc>         <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/earrings</loc>             <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/stud-earrings</loc>        <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/jhumkas</loc>              <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/women-chappals</loc>       <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/men-chappals</loc>         <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/women-jutti</loc>          <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/women-bantus</loc>          <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/men-jutti</loc>            <priority>0.8</priority><changefreq>daily</changefreq></url>
+  <url><loc>https://aharyas.com/shop/men-bantus</loc>            <priority>0.8</priority><changefreq>daily</changefreq></url>
+
+  <!-- Company pages -->
+  <url><loc>https://aharyas.com/shop/company/vasudhaa-vastrram</loc>  <priority>0.7</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://aharyas.com/shop/company/anemone-vinkel</loc>      <priority>0.7</priority><changefreq>weekly</changefreq></url>
+
+  <!-- Policies -->
+  <url><loc>https://aharyas.com/privacypolicy</loc>     <priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://aharyas.com/termsconditions</loc>   <priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://aharyas.com/refundpolicy</loc>      <priority>0.4</priority><changefreq>yearly</changefreq></url>
+  <url><loc>https://aharyas.com/shippingpolicy</loc>    <priority>0.4</priority><changefreq>yearly</changefreq></url>
+
+</urlset>
