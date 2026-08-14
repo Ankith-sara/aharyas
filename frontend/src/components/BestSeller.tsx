@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProducts } from '../context/ProductContext';
 import Title from './Title';
 import ProductItem from './ProductItem';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
+import type { Product } from '@aharyas/types';
 
 const ALL_CATEGORIES = [
   { id: 'women', name: 'Women', subcategories: ['Dresses', 'Sarees', 'Tops', 'Women Shirts', 'Women Co-ord Sets'] },
@@ -201,8 +202,15 @@ function BestSellerSection({
   );
 }
 
-export default function BestSeller() {
-  const { products, isLoading } = useProducts();
+export default function BestSeller({ initialProducts }: { initialProducts?: Product[] }) {
+  const { products: contextProducts, isLoading } = useProducts();
+  // See LatestCollection.tsx for why this falls back to the
+  // server-fetched snapshot instead of ProductContext while the
+  // client fetch is still in flight.
+  const products = useMemo(
+    () => (contextProducts?.length ? contextProducts : initialProducts ?? []),
+    [contextProducts, initialProducts]
+  );
   const [productMap, setProductMap] = useState<Record<string, any[]>>({});
   const [visible, setVisible] = useState(false);
   const [mountReady, setMountReady] = useState(false);

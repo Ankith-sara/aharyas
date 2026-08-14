@@ -740,7 +740,7 @@ export default function ListPage() {
               </div>
               <div>
                 <h3 className="font-semibold text-gray-900">Delete Product?</h3>
-                <p className="text-sm text-gray-500 font-light mt-0.5 line-clamp-1">"{deleteConfirm.name}"</p>
+                <p className="text-sm text-gray-500 font-light mt-0.5 line-clamp-1">&quot;{deleteConfirm.name}&quot;</p>
               </div>
             </div>
             <p className="text-sm text-gray-500 font-light mb-6">

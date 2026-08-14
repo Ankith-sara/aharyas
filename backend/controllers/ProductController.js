@@ -6,11 +6,13 @@ import {
 import { getSellerAnalytics } from '../services/OrderService.js';
 import { handleError } from './utils.js';
 import imagekit from '../config/imagekit.js';
+import { revalidateFrontendCache } from '../services/CacheRevalidationService.js';
 
 //  Controllers
 const addProduct = async (req, res) => {
     try {
         const product = await createProduct({ body: req.body, files: req.files, adminId: req.user.id });
+        revalidateFrontendCache('products');
         res.status(201).json({ success: true, message: 'Product Added Successfully', product });
     } catch (error) {
         handleError(res, error, 'addProduct');
@@ -20,6 +22,7 @@ const addProduct = async (req, res) => {
 const editProduct = async (req, res) => {
     try {
         const product = await updateProduct({ productId: req.params.id, body: req.body, files: req.files, adminId: req.user.id });
+        revalidateFrontendCache('products');
         res.json({ success: true, message: 'Product updated successfully', product });
     } catch (error) {
         handleError(res, error, 'editProduct');
@@ -63,6 +66,7 @@ const singleProduct = async (req, res) => {
 const removeProduct = async (req, res) => {
     try {
         await deleteProduct({ productId: req.params.id, adminId: req.user.id });
+        revalidateFrontendCache('products');
         res.json({ success: true, message: 'Product removed successfully' });
     } catch (error) {
         handleError(res, error, 'removeProduct');

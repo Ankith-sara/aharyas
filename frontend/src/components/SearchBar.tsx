@@ -107,13 +107,19 @@ export default function SearchBar() {
     }
   }, [showSearch, search]);
 
+  const handleClose = useCallback(() => {
+    setShowSearch?.(false);
+    setQuery('');
+    setResults([]);
+  }, [setShowSearch]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleClose();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  }, [handleClose]);
 
   useEffect(() => {
     document.body.style.overflow = showSearch ? 'hidden' : '';
@@ -135,12 +141,6 @@ export default function SearchBar() {
       .map(({ p }) => p);
     setResults(scored);
   }, [query, products]);
-
-  const handleClose = useCallback(() => {
-    setShowSearch?.(false);
-    setQuery('');
-    setResults([]);
-  }, [setShowSearch]);
 
   const saveRecent = useCallback(
     (term: string) => {

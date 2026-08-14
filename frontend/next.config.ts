@@ -17,6 +17,16 @@ const nextConfig: NextConfig = {
     });
     return config;
   },
+  async redirects() {
+    return [
+      { source: '/privacypolicy', destination: '/privacy-policy', permanent: true },
+      { source: '/refundpolicy', destination: '/refund-policy', permanent: true },
+      { source: '/shippingpolicy', destination: '/shipping-policy', permanent: true },
+      { source: '/delivery-policy', destination: '/shipping-policy', permanent: true },
+      { source: '/termsconditions', destination: '/terms-conditions', permanent: true },
+      { source: '/terms', destination: '/terms-conditions', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

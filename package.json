@@ -1,0 +1,19 @@
+{
+  "name": "aharyas",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Aharyas monorepo — frontend (Next.js), admin (Next.js), backend (Express), shared packages",
+  "scripts": {
+    "dev:frontend": "pnpm --filter frontend dev",
+    "dev:admin": "pnpm --filter admin dev",
+    "dev:backend": "pnpm --filter backend server",
+    "lint": "pnpm -r --if-present run lint",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "pre-commit": "npm --prefix backend test && npm --prefix frontend run typecheck && npm --prefix admin run typecheck && npm --prefix frontend run lint",
+    "build": "pnpm --filter frontend build && pnpm --filter admin build"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

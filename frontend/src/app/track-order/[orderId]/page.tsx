@@ -2,14 +2,11 @@
 
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { useProducts } from '../../../context/ProductContext';
-import { useAuth } from '../../../context/AuthContext';
-import Title from '../../../components/Title';
-import { api } from '../../../context/api';
-import {
-  Package, Truck, CheckCircle, Clock, MapPin, AlertCircle,
-  ChevronDown, ChevronUp, Phone, Hash, CreditCard, XCircle
-} from 'lucide-react';
+import { useProducts } from '@/context/ProductContext';
+import { useAuth } from '@/context/AuthContext';
+import Title from '@/components/Title';
+import { api } from '@/context/api';
+import { AlertCircle } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function TrackOrderPage({ params }: { params: Promise<{ orderId: string }> }) {
@@ -19,13 +16,10 @@ export default function TrackOrderPage({ params }: { params: Promise<{ orderId: 
   const { token } = useAuth();
 
   const [order, setOrder] = useState<any>(null);
-  const [showDetails, setShowDetails] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancelModal, setCancelModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-
-  const allStatuses = ['Order Placed', 'Processing', 'Shipping', 'Out for Delivery', 'Delivered'];
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -50,22 +44,6 @@ export default function TrackOrderPage({ params }: { params: Promise<{ orderId: 
     };
     fetchOrder();
   }, [orderId, token]);
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Order Placed': return <CheckCircle size={14} />;
-      case 'Processing': return <Package size={14} />;
-      case 'Shipping':
-      case 'Out for Delivery': return <Truck size={14} />;
-      case 'Delivered': return <CheckCircle size={14} />;
-      default: return <Clock size={14} />;
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {

@@ -4,9 +4,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
-  ChevronDown, ChevronLeft, ChevronRight,
-  Minus, Plus, Heart, Share2, Ruler, X, ZoomIn, ZoomOut,
-  Truck, MapPin, Users,
+  ChevronDown, ChevronLeft, ChevronRight, Minus, Users, X,
+  Plus, Heart, Share2, Ruler, ZoomIn, RotateCcw, MapPin 
 } from 'lucide-react';
 import RelatedProducts from './RelatedProducts';
 import RecentlyViewed from './RecentlyViewed';
@@ -132,7 +131,7 @@ interface ProductClientProps {
 
 export default function ProductClient({ slug }: ProductClientProps) {
   const router = useRouter();
-  const { products, currency, addProductToRecentlyViewed, getProductUrl } = useProducts();
+  const { products, currency, addProductToRecentlyViewed } = useProducts();
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const { token } = useAuth();
   
@@ -140,9 +139,6 @@ export default function ProductClient({ slug }: ProductClientProps) {
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [modalImage, setModalImage] = useState('');
-  const [zoomLevel, setZoomLevel] = useState(1);
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
@@ -151,6 +147,63 @@ export default function ProductClient({ slug }: ProductClientProps) {
   const [shareToast, setShareToast] = useState(false);
   const [thumbsReady, setThumbsReady] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalIndex, setModalIndex] = useState(0);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  const openModal = useCallback((index?: number) => {
+    setModalIndex(index !== undefined ? index : currentIndex);
+    setZoomScale(1);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  }, [currentIndex]);
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setZoomScale(1);
+    document.body.style.overflow = 'unset';
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setZoomScale((prev) => Math.min(prev + 0.5, 3));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomScale((prev) => Math.max(prev - 0.5, 1));
+  }, []);
+
+  const handleResetZoom = useCallback(() => {
+    setZoomScale(1);
+  }, []);
+
+  const handleToggleZoom = useCallback(() => {
+    setZoomScale((prev) => (prev > 1 ? 1 : 2));
+  }, []);
+
+  useEffect(() => {
+    setZoomScale(1);
+  }, [modalIndex]);
+
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+      if (e.key === '+' || e.key === '=') handleZoomIn();
+      if (e.key === '-') handleZoomOut();
+      if (e.key === '0') handleResetZoom();
+      if (e.key === 'ArrowRight' && productData?.images?.length) {
+        setModalIndex((prev) => (prev + 1) % productData.images.length);
+      }
+      if (e.key === 'ArrowLeft' && productData?.images?.length) {
+        setModalIndex((prev) => (prev === 0 ? productData.images.length - 1 : prev - 1));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isModalOpen, productData, closeModal, handleZoomIn, handleZoomOut, handleResetZoom]);
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -166,7 +219,10 @@ export default function ProductClient({ slug }: ProductClientProps) {
     if (!touchStartX.current) return;
     const dx = touchStartX.current - e.changedTouches[0].clientX;
     const dy = Math.abs((touchStartY.current || 0) - e.changedTouches[0].clientY);
-    if (Math.abs(dx) > 50 && dy < 40) dx > 0 ? handleNext() : handlePrev();
+    if (Math.abs(dx) > 50 && dy < 40) {
+      if (dx > 0) handleNext();
+      else handlePrev();
+    }
     touchStartX.current = null;
   };
 
@@ -174,27 +230,18 @@ export default function ProductClient({ slug }: ProductClientProps) {
     if (!productData) return;
     const next = (currentIndex + 1) % productData.images.length;
     setCurrentIndex(next); setImgLoaded(false);
-    if (isModalOpen) setModalImage(productData.images[next]);
-  }, [productData, currentIndex, isModalOpen]);
+  }, [productData, currentIndex]);
 
   const handlePrev = useCallback(() => {
     if (!productData) return;
     const prev = currentIndex === 0 ? productData.images.length - 1 : currentIndex - 1;
     setCurrentIndex(prev); setImgLoaded(false);
-    if (isModalOpen) setModalImage(productData.images[prev]);
-  }, [productData, currentIndex, isModalOpen]);
+  }, [productData, currentIndex]);
 
   const selectThumb = (i: number) => {
     setCurrentIndex(i); setImgLoaded(false);
     thumbsRef.current?.children[i]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   };
-
-  const openModal = (img: string) => { setModalImage(img); setModalOpen(true); setZoomLevel(1); document.body.style.overflow = 'hidden'; };
-  const closeModal = useCallback((e?: React.MouseEvent) => {
-    e?.preventDefault(); e?.stopPropagation();
-    setModalOpen(false); setModalImage(''); setZoomLevel(1); document.body.style.overflow = 'unset';
-  }, []);
-
   const handleAddToCart = () => {
     if (productData.sizes?.length > 0 && !size) {
       setSizeError(true);
@@ -332,7 +379,7 @@ export default function ProductClient({ slug }: ProductClientProps) {
               <div
                 className="relative group bg-gray-50 overflow-hidden cursor-zoom-in"
                 onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-                onClick={() => openModal(productData.images[currentIndex])}
+                onClick={() => openModal(currentIndex)}
               >
                 <img
                   key={currentIndex}
@@ -344,7 +391,10 @@ export default function ProductClient({ slug }: ProductClientProps) {
                   style={{ height: 'clamp(420px, 72vh, 780px)' }}
                 />
 
-                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 text-[9px] font-light tracking-[0.18em] uppercase flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <div
+                  onClick={(e) => { e.stopPropagation(); openModal(currentIndex); }}
+                  className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-2 text-[9px] font-light tracking-[0.18em] uppercase flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer hover:bg-black hover:text-white"
+                >
                   <ZoomIn size={11} strokeWidth={1.5} /> View
                 </div>
 
@@ -579,6 +629,120 @@ export default function ProductClient({ slug }: ProductClientProps) {
         category={productData.category}
         subCategory={productData.subCategory}
       />
+
+      {/* Image Lightbox Modal */}
+      {isModalOpen && productData?.images && (
+        <div
+          className="fixed inset-0 z-50 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center animate-fadeIn select-none"
+          onClick={closeModal}
+        >
+          {/* Top Control Bar */}
+          <div
+            className="absolute top-0 right-0 p-4 sm:p-6 z-20 pointer-events-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Toolbar controls */}
+            <div className="flex items-center gap-1 bg-white border border-black px-2 py-1 shadow-md pointer-events-auto rounded-none">
+              <button
+                type="button"
+                onClick={handleZoomOut}
+                disabled={zoomScale <= 1}
+                className="p-1.5 hover:bg-black hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer text-black rounded-none"
+                title="Zoom Out (-)"
+              >
+                <Minus size={16} strokeWidth={1.5} />
+              </button>
+              <span className="text-[11px] font-mono font-medium tracking-wider w-10 text-center text-black">
+                {Math.round(zoomScale * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={handleZoomIn}
+                disabled={zoomScale >= 3}
+                className="p-1.5 hover:bg-black hover:text-white transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer text-black rounded-none"
+                title="Zoom In (+)"
+              >
+                <Plus size={16} strokeWidth={1.5} />
+              </button>
+
+              {zoomScale > 1 && (
+                <button
+                  type="button"
+                  onClick={handleResetZoom}
+                  className="p-1.5 hover:bg-black hover:text-white transition-colors cursor-pointer text-black border-l border-gray-300 pl-2 ml-0.5 rounded-none"
+                  title="Reset Zoom (0)"
+                >
+                  <RotateCcw size={14} strokeWidth={1.5} />
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="p-1.5 hover:bg-black hover:text-white transition-colors cursor-pointer text-black border-l border-gray-300 pl-2 ml-0.5 rounded-none"
+                title="Close (Esc)"
+              >
+                <X size={18} strokeWidth={1.5} />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Image Container */}
+          <div
+            className={`relative max-w-[92vw] max-h-[85vh] flex items-center justify-center p-2 ${
+              zoomScale > 1 ? 'overflow-auto scrollbar-thin' : 'overflow-hidden'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleZoom();
+            }}
+          >
+            <img
+              src={cdnOpt(productData.images[modalIndex], 1800)}
+              alt={`${productData.name} view ${modalIndex + 1}`}
+              className={`max-w-full max-h-[90vh] object-contain shadow-lg transition-transform duration-300 ease-out ${
+                zoomScale > 1 ? 'cursor-zoom-out' : 'cursor-zoom-in'
+              }`}
+              style={{ transform: `scale(${zoomScale})` }}
+            />
+          </div>
+
+          {/* Bottom Centered Image Counter */}
+          <div
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 shadow-sm px-6 py-2 text-xs font-light tracking-[0.2em] text-black font-mono select-none z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {modalIndex + 1} / {productData.images.length}
+          </div>
+
+          {productData.images.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalIndex((prev) => (prev === 0 ? productData.images.length - 1 : prev - 1));
+                }}
+                className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-11 h-11 bg-white hover:bg-black hover:text-white text-black border border-black flex items-center justify-center transition-all cursor-pointer z-10 shadow-md rounded-none"
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={22} strokeWidth={1.5} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setModalIndex((prev) => (prev + 1) % productData.images.length);
+                }}
+                className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-11 h-11 bg-white hover:bg-black hover:text-white text-black border border-black flex items-center justify-center transition-all cursor-pointer z-10 shadow-md rounded-none"
+                aria-label="Next image"
+              >
+                <ChevronRight size={22} strokeWidth={1.5} />
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -21,7 +21,7 @@ export default function HomePage() {
       <LatestCollection />
       <BestSeller />
       <CompanyProducts />
-      <WhatWeDo />
+      {/* <WhatWeDo /> */}
       <NewsletterBox />
     </div>
   );

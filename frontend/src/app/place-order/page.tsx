@@ -1,19 +1,17 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Title from '../../components/Title';
 import CartTotal from '../../components/CartTotal';
-import { assets } from '../../assets/assets';
 import { useProducts } from '../../context/ProductContext';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
 import {
-  CreditCard, Home, ArrowLeft,
-  MapPin, Mail, User, Package, ChevronDown, Search, ShieldCheck
+  CreditCard, ArrowLeft,
+  Package, ChevronDown, Search, ShieldCheck
 } from 'lucide-react';
 import { api } from '../../context/api';
 import { Country, State, City } from 'country-state-city';
@@ -105,7 +103,7 @@ const SearchableSelect = ({
 
 export default function PlaceOrderPage() {
   const router = useRouter();
-  const { products, currency, backendUrl } = useProducts();
+  const { products } = useProducts();
   const { cartItems, getCartAmount, setCartItems } = useCart();
   const { token, user } = useAuth();
 
@@ -114,7 +112,6 @@ export default function PlaceOrderPage() {
     firstName: '', lastName: '', email: user?.email || '', street: '',
     city: '', state: '', zipcode: '', country: 'IN', phone: ''
   });
-  const [saveAddress, setSaveAddress] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const countryOptions = useMemo(() =>

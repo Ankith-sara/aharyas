@@ -74,7 +74,7 @@ export default function Footer() {
               alt="Aharyas"
               width={163}
               height={56}
-              className="h-14 w-auto object-contain object-left mb-3 invert"
+              className="h-14 w-auto object-contain object-left mb-3 invert mix-blend-screen"
             />
             <p className="text-sm text-zinc-400 font-light leading-relaxed mb-8 max-w-[280px]">
               Handcrafted Excellence, Rooted in Culture. Authentic Pieces, Every Detail a Story.

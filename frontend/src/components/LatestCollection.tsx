@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useProducts } from '../context/ProductContext';
 import Title from './Title';
 import ProductItem from './ProductItem';
 import Link from 'next/link';
+import type { Product } from '@aharyas/types';
 import { ChevronLeft, ChevronRight, ShoppingBag } from 'lucide-react';
 
 const ALL_CATEGORIES = [
@@ -15,10 +16,6 @@ const ALL_CATEGORIES = [
 
 const STRIP_TOTAL = 10;
 const PER_SUBCAT_CAP = 3;
-
-function slugify(text: string) {
-  return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-}
 
 function matchesCategory(item: any, subcategories: string[]) {
   const subCat = item.subCategory ?? '';
@@ -247,8 +244,16 @@ function LatestSection({
   );
 }
 
-export default function LatestCollection() {
-  const { products, isLoading } = useProducts();
+export default function LatestCollection({ initialProducts }: { initialProducts?: Product[] }) {
+  const { products: contextProducts, isLoading } = useProducts();
+  // Server-fetched data (see app/page.tsx) wins on first paint so this
+  // section renders with real products before client JS/context even
+  // mounts; once ProductContext finishes its own fetch, it takes over
+  // as the source of truth (same data, just live-updating).
+  const products = useMemo(
+    () => (contextProducts?.length ? contextProducts : initialProducts ?? []),
+    [contextProducts, initialProducts]
+  );
   const [productMap, setProductMap] = useState<Record<string, any[]>>({});
   const [visible, setVisible] = useState(false);
   const [mountReady, setMountReady] = useState(false);

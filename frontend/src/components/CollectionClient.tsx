@@ -8,7 +8,7 @@ import Title from './Title';
 import ProductItem from './ProductItem';
 import {
   ShoppingBag, X, ChevronDown, GridIcon, ListIcon, Check, SlidersHorizontal,
-  Star, ChevronUp, Tag, Building2, Sparkles, RotateCcw, ArrowUpDown, Palette
+  ChevronUp, Tag, Building2, Sparkles, RotateCcw, ArrowUpDown, Palette
 } from 'lucide-react';
 import { fuzzyMatch } from '@aharyas/utils';
 

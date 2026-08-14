@@ -3,10 +3,6 @@
     {
       "source": "/sitemap.xml",
       "destination": "https://aharya-y1hh.onrender.com/sitemap.xml"
-    },
-    {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
     }
   ],
   "headers": [

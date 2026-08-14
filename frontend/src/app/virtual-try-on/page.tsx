@@ -21,9 +21,10 @@ function VirtualTryOnContent() {
   const [removingBg, setRemovingBg] = useState(false);
 
   useEffect(() => {
+    const currentVideo = videoRef.current;
     return () => {
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
+      if (currentVideo?.srcObject) {
+        const stream = currentVideo.srcObject as MediaStream;
         stream.getTracks().forEach((track) => track.stop());
       }
     };

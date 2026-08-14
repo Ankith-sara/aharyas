@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import { toast } from "react-toastify";
 import { api } from "./api";
 import { Product } from "@aharyas/types";
-import { createSlug, getProductUrl, fuzzyMatch, tokenize, stemWord } from "@aharyas/utils";
+import { createSlug, getProductUrl, fuzzyMatch, tokenize } from "@aharyas/utils";
 
 const RECENTLY_VIEWED_KEY = "recentlyViewed";
 const SUBCATEGORY_KEY = "selectedSubCategory";

@@ -18,7 +18,9 @@ const CATEGORIES = [
   { name: 'Men Shirts', imageUrl: 'https://vasudhaavastrram.in/cdn/shop/files/Block_Print_Grey_Shirt_1024x1024.jpg?v=1750169679', pos: 'center top', w: 600, h: 800, path: undefined },
   { name: 'Men Co-ord Sets', imageUrl: 'https://vasudhaavastrram.in/cdn/shop/files/Indigo_Black_Co-ord_Set_1024x1024.jpg?v=1750166752', pos: 'center top', w: 600, h: 800, path: undefined },
   { name: 'Kondapalli Bommalu', imageUrl: 'https://ik.imagekit.io/g3ikw48o1/products/bharatanatyam-dancing-doll_1_wNPh4bVNQ.png?tr=w-900', pos: 'center center', w: 600, h: 800, path: undefined },
+  { name: 'Earrings', imageUrl: 'https://ik.imagekit.io/g3ikw48o1/products/Earring.png', pos: 'center center', w: 600, h: 800, path: undefined },
   { name: 'Handbags', imageUrl: 'https://ik.imagekit.io/g3ikw48o1/products/bag.jpg?tr=w-600,q-80,f-auto', pos: 'center center', w: 600, h: 800, path: undefined },
+  { name: 'Scented Candles', imageUrl: 'https://ik.imagekit.io/g3ikw48o1/products/somascents-jar-of-hearts-scented-soyjel-wax-cande-220g_1_6kPy5EKas.jpeg?tr=w-900', pos: 'center center', w: 600, h: 800, path: undefined },
   { name: 'Journals', imageUrl: 'https://ik.imagekit.io/g3ikw48o1/products/book.jpg?tr=w-600,q-80,f-auto', pos: 'center center', w: 600, h: 800, path: undefined },
   { name: 'Women Chappals', imageUrl: 'https://www.korakari.com/cdn/shop/files/LAHYMP-W011.jpg?format=webp&quality=75&v=1768302945&width=600', pos: 'center top', w: 600, h: 800, path: undefined },
 ];
@@ -108,13 +110,13 @@ export default function ExploreCollections() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {Array.from({ length: 8 }, (_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
             {CATEGORIES.map((category, index) => (
               <CategoryCard
                 key={category.name}

@@ -6,13 +6,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import {
-  ChevronRight, Heart, Clock, User, ShoppingBag, Settings, LogOut, Edit2, Trash2,
-  MapPinHouse, X, Mail, Calendar, Plus, ArrowRight, AlertCircle, Eye, EyeOff, Lock, Camera
+  ChevronRight, Heart, Clock, User, ShoppingBag, Settings, LogOut, X, Camera
 } from 'lucide-react';
 import Title from '../../../components/Title';
 import ProductItem from '../../../components/ProductItem';
 import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../context/api';
+import { toast } from 'react-toastify';
 
 function ModalShell({ onBackdropClick, zIndex = "z-50", maxWidth = "max-w-lg", children }: any) {
   return (
@@ -64,14 +64,8 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editProfile, setEditProfile] = useState({ name: "", email: "", image: "", imageFile: null as File | null });
-  const [addressModal, setAddressModal] = useState({ open: false, address: {} as any, index: -1 });
   const [loading, setLoading] = useState(false);
   const [logoutModal, setLogoutModal] = useState(false);
-  const [deleteAddressModal, setDeleteAddressModal] = useState({ open: false, index: -1 });
-  const [errorModal, setErrorModal] = useState({ open: false, message: "" });
-  const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
-  const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false });
-  const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -126,13 +120,13 @@ export default function ProfileDetailPage({ params }: { params: Promise<{ id: st
         setUserData(res.data.user);
         setEditProfile({ name: res.data.user.name, email: res.data.user.email, image: res.data.user.image || "", imageFile: null });
         setActiveSection(null);
-      } else setErrorModal({ open: true, message: res.data.message || "Failed to update profile." });
-    } catch { setErrorModal({ open: true, message: "Failed to update profile." }); }
+      } else toast.error(res.data.message || "Failed to update profile.");
+    } catch { toast.error("Failed to update profile."); }
     finally { setLoading(false); }
   };
 
   const menuItems = [
-    { icon: <MapPinHouse size={18} />, text: "Delivery Address", description: "Manage your delivery locations" },
+    { icon: <User size={18} />, text: "Delivery Address", description: "Manage your delivery locations" },
     { icon: <ShoppingBag size={18} />, text: "Order History", link: "/orders", description: "View your past orders" },
     { icon: <Heart size={18} />, text: "Wishlist", link: "/wishlist", description: "Items you've saved for later" },
     { icon: <Settings size={18} />, text: "Account Settings", description: "Notifications, password, privacy" },

@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@aharyas/types": "file:../packages/types",
-    "@aharyas/utils": "file:../packages/utils",
-    "@aharyas/validation": "file:../packages/validation",
-    "@aharyas/ui": "file:../packages/ui",
+    "@aharyas/types": "workspace:*",
+    "@aharyas/utils": "workspace:*",
+    "@aharyas/validation": "workspace:*",
+    "@aharyas/ui": "workspace:*",
     "@react-oauth/google": "^0.13.4",
     "axios": "^1.7.9",
     "chart.js": "^4.4.8",

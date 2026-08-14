@@ -108,10 +108,9 @@ export const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (storedToken && !token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
         setTokenState(storedToken);
-        getUserProfile(storedToken);
       }
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (token) {

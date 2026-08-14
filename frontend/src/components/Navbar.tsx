@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -59,11 +59,11 @@ export default function Navbar() {
     setProfileOpen(false);
   }, [pathname]);
 
-  const closeMenu = () => {
+  const closeMenu = useCallback(() => {
     setMenuVisible(false);
     setSearch?.('');
     setTimeout(() => setActiveCategory(null), 400);
-  };
+  }, [setSearch]);
 
   const logout = () => {
     setShowLogoutConfirm(false);
@@ -89,7 +89,7 @@ export default function Navbar() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [menuVisible, profileOpen]);
+  }, [menuVisible, profileOpen, closeMenu]);
 
   useEffect(() => {
     document.body.style.overflow = menuVisible ? 'hidden' : '';
@@ -173,14 +173,14 @@ export default function Navbar() {
         className={`fixed top-0 left-0 right-0 px-4 sm:px-6 md:px-10 z-50 transition-all duration-300 ${getNavbarBackground()}`}
       >
         <div className="flex items-center justify-between text-white py-4">
-          <Link href="/" onClick={() => setSearch?.('')}>
+          <Link href="/" onClick={() => setSearch?.('')} className="flex items-center">
             <Image
-              src={assets.logo_white}
-              className="w-28 md:w-36"
+              src={assets.logo}
+              className="w-28 md:w-36 h-auto object-contain filter invert mix-blend-screen"
               alt="Aharyas"
               width={144}
               height={42}
-              style={{ filter: !isScrolled && isHomePage ? 'drop-shadow(0 1px 4px rgba(0,0,0,0.6))' : 'none' }}
+              priority
             />
           </Link>
 

@@ -377,16 +377,6 @@ export const CartContextProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [token]);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedToken = localStorage.getItem("token");
-      if (storedToken && !token) {
-        getUserCart(storedToken);
-        getUserWishlist(storedToken);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
     if (token) {
       getUserCart(token);
       getUserWishlist(token);

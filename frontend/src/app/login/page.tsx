@@ -288,7 +288,7 @@ export default function LoginPage() {
           <div className="absolute inset-0 flex items-center justify-center p-16">
             <div className="text-white max-w-lg">
               <Link href="/" className="inline-block mb-6 hover:opacity-80 transition-opacity">
-                <Image src={assets.logo_white} alt="Aharyas" width={176} height={40} className="w-36 md:w-44" />
+                <Image src={assets.logo} alt="Aharyas" width={176} height={40} className="w-36 md:w-44 h-auto filter invert mix-blend-screen" />
               </Link>
               <div className="w-20 h-0.5 bg-white mb-8" />
               <p className="text-xl font-light leading-relaxed opacity-90">
