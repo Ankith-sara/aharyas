@@ -94,9 +94,11 @@ const calculateOrderDetails = async (items, address, couponCode) => {
 // Controllers 
 const placeOrder = async (req, res) => {
     try {
-        const { userId, items, address, couponCode } = req.body;
+        const userId = req.user?._id?.toString() || req.user?.id?.toString();
         if (!userId)
             return res.status(401).json({ success: false, message: 'Authentication required. Please log in to place an order.' });
+
+        const { items, address, couponCode } = req.body;
         if (!items || !address)
             return res.status(400).json({ success: false, message: 'Missing required fields: items or address' });
 
@@ -138,7 +140,7 @@ const verifyCOD = async (req, res) => {
         if (!order)
             return res.status(404).json({ success: false, message: 'Order not found' });
 
-        const requestingUserId = req.user?._id?.toString();
+        const requestingUserId = req.user?._id?.toString() || req.user?.id?.toString();
         const isAdmin = req.user?.role === 'admin';
         const isOwner = order.userId && order.userId.toString() === requestingUserId;
 
@@ -156,9 +158,11 @@ const verifyCOD = async (req, res) => {
 
 const placeOrderRazorpay = async (req, res) => {
     try {
-        const { userId, items, address, couponCode } = req.body;
+        const userId = req.user?._id?.toString() || req.user?.id?.toString();
         if (!userId)
             return res.status(401).json({ success: false, message: 'Authentication required. Please log in to place an order.' });
+
+        const { items, address, couponCode } = req.body;
         if (!items || !address)
             return res.status(400).json({ success: false, message: 'Missing required fields: items or address' });
 
@@ -188,13 +192,17 @@ const placeOrderRazorpay = async (req, res) => {
 
 const verifyRazorpay = async (req, res) => {
     try {
+        const requestingUserId = req.user?._id?.toString() || req.user?.id?.toString();
+        if (!requestingUserId)
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+
         const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
         if (orderId && !razorpay_payment_id) {
             const order = await orderModel.findById(orderId);
             if (!order)
                 return res.status(404).json({ success: false, message: 'Order not found' });
-            if (order.userId && order.userId.toString() !== req.body.userId)
+            if (order.userId && order.userId.toString() !== requestingUserId)
                 return res.status(403).json({ success: false, message: 'Access denied. You do not own this order.' });
             if (order.payment)
                 return res.json({ success: true, message: 'Payment already verified', order });
@@ -206,7 +214,7 @@ const verifyRazorpay = async (req, res) => {
 
         const order = await verifyAndFinaliseRazorpayOrder({
             orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature, crypto,
-            userId: req.body.userId,
+            userId: requestingUserId,
         });
 
         // Track analytics for successful Razorpay payment
@@ -238,7 +246,11 @@ const allOrders = async (req, res) => {
 
 const userOrders = async (req, res) => {
     try {
-        const orders = await fetchAndMigrateUserOrders(req.body.userId);
+        const userId = req.user?._id?.toString() || req.user?.id?.toString();
+        if (!userId)
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+
+        const orders = await fetchAndMigrateUserOrders(userId);
         res.json({ success: true, orders });
     } catch (error) {
         handleError(res, error, 'userOrders');
@@ -289,7 +301,7 @@ const orderStatus = async (req, res) => {
         if (!order)
             return res.status(404).json({ success: false, message: 'Order not found' });
 
-        const requestingUserId = req.user?._id?.toString();
+        const requestingUserId = req.user?._id?.toString() || req.user?.id?.toString();
         const isAdmin = req.user?.role === 'admin';
         const isOwner = order.userId && order.userId.toString() === requestingUserId;
 
@@ -332,7 +344,7 @@ const verifyDeliveryOtp = async (req, res) => {
         if (!order)
             return res.status(404).json({ success: false, message: 'Order not found' });
 
-        const requestingUserId = req.user?._id?.toString();
+        const requestingUserId = req.user?._id?.toString() || req.user?.id?.toString();
         const isAdmin = req.user?.role === 'admin';
         const isOwner = order.userId && order.userId.toString() === requestingUserId;
 
@@ -401,6 +413,10 @@ const verifyDeliveryOtp = async (req, res) => {
 // Cancel an unpaid Razorpay order (user dismissed or payment failed)
 const cancelPendingOrder = async (req, res) => {
     try {
+        const requestingUserId = req.user?._id?.toString() || req.user?.id?.toString();
+        if (!requestingUserId)
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+
         const { orderId } = req.body;
         if (!orderId)
             return res.status(400).json({ success: false, message: 'orderId is required' });
@@ -410,7 +426,7 @@ const cancelPendingOrder = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
 
         // Only the order owner can cancel
-        if (order.userId.toString() !== req.body.userId)
+        if (!order.userId || order.userId.toString() !== requestingUserId)
             return res.status(403).json({ success: false, message: 'Access denied' });
 
         // Only allow cancelling unpaid Razorpay orders
@@ -418,7 +434,7 @@ const cancelPendingOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Only unpaid Razorpay orders can be cancelled' });
 
         await orderModel.findByIdAndDelete(orderId);
-        logger.info(`Cancelled pending Razorpay order ${orderId} for user ${req.body.userId}`);
+        logger.info(`Cancelled pending Razorpay order ${orderId} for user ${requestingUserId}`);
 
         res.json({ success: true, message: 'Pending order cancelled' });
     } catch (error) {
@@ -429,6 +445,10 @@ const cancelPendingOrder = async (req, res) => {
 // Cancel an order by the user (before shipping)
 const cancelOrder = async (req, res) => {
     try {
+        const requestingUserId = req.user?._id?.toString() || req.user?.id?.toString();
+        if (!requestingUserId)
+            return res.status(401).json({ success: false, message: 'Authentication required' });
+
         const { orderId } = req.body;
         if (!orderId)
             return res.status(400).json({ success: false, message: 'orderId is required' });
@@ -438,7 +458,7 @@ const cancelOrder = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Order not found' });
 
         // Only the order owner can cancel
-        if (order.userId.toString() !== req.body.userId)
+        if (!order.userId || order.userId.toString() !== requestingUserId)
             return res.status(403).json({ success: false, message: 'Access denied' });
 
         // Only allow cancelling orders that haven't shipped yet
@@ -447,7 +467,7 @@ const cancelOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: `Cannot cancel order with status "${order.status}". Only orders that haven't shipped can be cancelled.` });
 
         await orderModel.findByIdAndUpdate(orderId, { status: 'Cancelled' });
-        logger.info(`Order ${orderId} cancelled by user ${req.body.userId}`);
+        logger.info(`Order ${orderId} cancelled by user ${requestingUserId}`);
 
         res.json({ success: true, message: 'Order cancelled successfully' });
     } catch (error) {

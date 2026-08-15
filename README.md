@@ -1,10 +1,10 @@
 # Aharyas
 
-Aharyas is a MERN e-commerce platform for handcrafted Indian products. The repo contains three apps:
+Aharyas is a production-grade MERN monorepo for handcrafted Indian heritage products. The repository is structured as a workspace containing two Next.js 15 App Router applications and an Express v2.0 REST API backend:
 
-- `frontend`: High-performance customer storefront built with React 18, Vite, React Router 7, and Vanilla/Tailwind CSS.
-- `admin`: Operational administrative & seller dashboard for catalog, order, verification, and real-time analytics management.
-- `backend`: Production-grade Node.js/Express API featuring MongoDB persistence, Redis-backed rate limiting with bounded in-memory fallbacks, JWT auth, Razorpay payments, salted delivery OTPs, Socket.IO admin streams, and automated abandoned cart worker automation.
+- `frontend`: High-performance customer storefront built with **Next.js 15**, **React 19**, **TypeScript**, **App Router**, and Tailwind CSS.
+- `admin`: Operational administrative & seller portal built with **Next.js 15**, **React 19**, **TypeScript**, **App Router**, Chart.js, and real-time Socket.IO telemetry.
+- `backend`: Production-grade Node.js/Express API (v2.0.0) featuring MongoDB persistence, Redis-backed rate limiting with bounded fail-closed fallback, JWT session auth, Razorpay payments, salted delivery OTPs, Socket.IO admin streams, and background abandoned cart worker automation.
 
 Live site: [https://aharyas.com](https://aharyas.com)
 
@@ -12,26 +12,30 @@ Live site: [https://aharyas.com](https://aharyas.com)
 
 ## 🔒 Production Security & Hardening Architecture
 
-### P0 Security Enforcements
-1. **IDOR Prevention**: Strict user ownership validation on all order lookup, status verification, and cart mutation endpoints (`OrderController.js`, `CartController.js`).
-2. **Hardened Delivery OTP**:
+### Architectural Security Enforcements
+1. **Authenticated Session Ownership (`req.user._id`)**:
+   - Replaced all insecure client-supplied `req.body.userId` parameters across order placement, Razorpay verification, order cancellation, cart mutations, wishlist endpoints, and user profile management.
+   - All server operations authoritatively derive `userId = req.user._id` strictly from JWT-authenticated sessions validated by middleware (`auth.js` / `adminAuth.js`).
+2. **IDOR Prevention**:
+   - Strict ownership validation enforced across all order status lookups, delivery verification, address updates, and cart operations.
+3. **Hardened Delivery OTP**:
    - Replaced plaintext OTP storage with salted HMAC SHA-256 hashes (`deliveryOtpHash`).
    - 15-minute sliding expiration (`deliveryOtpExpiresAt`).
    - Brute-force protection: 5-failed-attempt threshold triggers a 15-minute account lockout (`deliveryOtpLockoutUntil`).
    - Cryptographic timing-safe hash comparison (`crypto.timingSafeEqual`).
-3. **Socket.IO Admin Analytics Security**:
+4. **Socket.IO Admin Analytics Security**:
    - JWT-authenticated `/admin-analytics` namespace requiring active admin token verification.
    - Client-side event sanitization preventing malicious telemetry injections.
    - Authoritative business events emitted exclusively by server-side domain services.
-4. **Resilient Rate Limiting**:
+5. **Resilient Rate Limiting**:
    - Redis-backed sliding window rate limiters across auth, OTP, register, and user routes.
    - **Fail-Closed Fallback Store**: Bounded in-memory map fallback (capped at 5,000 active entries) ensuring security routes remain protected even during Redis outages.
-5. **XSS Payload Mitigation**:
+6. **XSS Payload Mitigation**:
    - HTML sanitizer (`utils/sanitizer.js`) stripping dangerous `<script>`, `<iframe>`, and `on*` event handlers from rich text product descriptions.
    - Strict string sanitization on user inputs and catalog metadata.
-6. **Checkout Calculation Integrity**:
+7. **Checkout Calculation Integrity**:
    - All line prices, sub-totals, discounts, delivery fees, and order totals are calculated authoritatively on the backend server.
-   - Client-side `localStorage` data is treated strictly as display state.
+   - Client-side display state is completely decoupled from price calculations.
 
 ---
 
@@ -57,34 +61,31 @@ Live site: [https://aharyas.com](https://aharyas.com)
 
 ```text
 aharyas-app/
-├── admin/                 Admin & Seller React Dashboard
+├── admin/                 Admin & Seller Next.js 15 App Router Portal
 │   ├── src/
-│   │   ├── components/    UI components & rich text editor
-│   │   ├── context/       Auth & Admin state contexts
-│   │   ├── pages/         Order, product, and analytics views
-│   └── index.html         Admin entrypoint (noindex, nofollow)
-├── backend/               Express REST API & Worker Engine
-│   ├── config/            MongoDB, Redis, Mailer, Logger, Email Templates, Socket
-│   ├── controllers/       API Request handlers (Order, Cart, Product, User, etc.)
-│   ├── jobs/              Background workers (abandonedCartWorker.js)
+│   │   ├── app/           App Router pages (dashboard, orders, products, verifications)
+│   │   ├── components/    UI components, stats cards & charts
+│   │   └── context/       Auth & Admin state contexts
+│   └── package.json       Next.js 15, React 19, TypeScript
+├── backend/               Express REST API & Worker Engine (v2.0.0)
+│   ├── config/            MongoDB, Redis, Mailer, Logger, Socket
+│   ├── features/          Domain features (order, cart, wishlist, product, user, analytics)
 │   ├── middlewares/       Auth, RateLimiter (with fallback), Sanitize, Upload
-│   ├── models/            Mongoose Schemas (CartModel, OrderModel, ProductModel, UserModel)
-│   ├── routes/            Express Route definitions & validation rules
-│   ├── services/          Business logic (CartService, AbandonedCartService, OrderService)
 │   ├── tests/             Jest & Supertest unit/integration test suites (22 suites, 250 tests)
 │   └── server.js          Server entrypoint & socket launcher
-├── frontend/              Customer Storefront React App
-│   ├── public/            Static assets & robots.txt
-│   └── src/               Components, Contexts, Pages
+├── frontend/              Customer Storefront Next.js 15 App Router App
+│   ├── public/            Static assets & favicon
+│   └── src/               App Router pages, components, and contexts
 └── README.md
 ```
 
 ---
 
-## 🛠️ Prerequisites & Setup
+## 🛠️ Prerequisites & Environment Setup
 
 ### Requirements
 - **Node.js**: v18.x or higher
+- **pnpm**: Workspace package manager
 - **MongoDB**: Connection string (Atlas or local replica set)
 - **Redis**: Connection string / URL for rate limiting & session caches
 - **SMTP Provider**: Host, port, user, and app password for Nodemailer
@@ -94,7 +95,7 @@ aharyas-app/
 #### `backend/.env`
 ```env
 NODE_ENV=development
-PORT=4000
+PORT=3040
 MONGODB_URI=mongodb+srv://...
 REDIS_URL=redis://...
 JWT_SECRET=your_super_secret_jwt_key
@@ -106,22 +107,22 @@ RAZORPAY_KEY_ID=...
 RAZORPAY_SECRET_KEY=...
 EMAIL_USER=support@aharyas.com
 EMAIL_PASS=...
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:3141
 ABANDONED_CART_CHECK_INTERVAL_MS=900000
 HEALTH_SECRET=...
 ```
 
-#### `frontend/.env`
+#### `frontend/.env.local`
 ```env
-VITE_BACKEND_URL=http://localhost:4000
-VITE_GOOGLE_CLIENT_ID=...
-VITE_RAZORPAY_KEY_ID=...
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3040
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...
+NEXT_PUBLIC_RAZORPAY_KEY_ID=...
 ```
 
-#### `admin/.env`
+#### `admin/.env.local`
 ```env
-VITE_BACKEND_URL=http://localhost:4000
-VITE_GOOGLE_CLIENT_ID=...
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3040
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=...
 ```
 
 ---
@@ -129,42 +130,36 @@ VITE_GOOGLE_CLIENT_ID=...
 ## 🚀 Running Locally
 
 ```bash
-# 1. Install dependencies
-cd backend && npm install
-cd ../frontend && npm install
-cd ../admin && npm install
+# 1. Install workspace dependencies
+pnpm install
 
 # 2. Start Backend (API + Socket + Background Worker)
 cd backend
 npm run server
 
-# 3. Start Frontend Storefront
+# 3. Start Frontend Storefront (runs on port 3141)
 cd frontend
 npm run dev
 
-# 4. Start Admin Portal
+# 4. Start Admin Portal (runs on port 3242)
 cd admin
 npm run dev
 ```
 
 ---
 
-## 🧪 Automated Testing
+## 🧪 Automated Testing & Verification
 
-Execute the complete backend test suite:
+Execute the complete monorepo pre-commit test & lint suite:
 
 ```bash
-cd backend
-npm test
+npm run pre-commit
 ```
 
-Expected result:
-```text
-Test Suites: 22 passed, 22 total
-Tests:       250 passed, 250 total
-Snapshots:   0 total
-Time:        12.593 s
-```
+Included checks:
+- **Backend Test Suite**: 22 Jest test suites (250 passing unit/integration tests).
+- **TypeScript Typecheck**: `--noEmit` across `frontend` and `admin`.
+- **ESLint Flat Config**: Native ESLint 9 validation across all workspace packages.
 
 ---
 
@@ -179,7 +174,7 @@ Time:        12.593 s
 - `POST /reset-password` — Complete password reset
 
 ### Cart Management (`/api/v1/cart`)
-- `POST /get` — Fetch user persistent cart
+- `POST /get` — Fetch user persistent cart (authenticated via token)
 - `POST /add` — Add item to cart
 - `POST /update` — Update item quantity / size
 - `POST /remove` — Remove item from cart
@@ -187,7 +182,7 @@ Time:        12.593 s
 - `POST /merge` — Merge guest cart into user account upon login
 
 ### Orders & Verification (`/api/v1/order`)
-- `POST /place` — Place COD order (triggers cart conversion)
+- `POST /place` — Place COD order (authenticated via token)
 - `POST /razorpay` — Initiate Razorpay payment session
 - `POST /verifyRazorpay` — Verify signature & finalize online order
 - `POST /verifyCOD` — Verify COD order ownership

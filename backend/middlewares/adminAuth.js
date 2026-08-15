@@ -58,7 +58,6 @@ const adminAuth = async (req, res, next) => {
 
     // Attach user to request
     req.user = user;
-    req.body.userId = user._id.toString();
     
     next();
   } catch (error) {

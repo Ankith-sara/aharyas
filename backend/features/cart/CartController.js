@@ -15,9 +15,12 @@ const requireFields = (res, fields, body) => {
     return true;
 };
 
+// Helper to get authenticated userId
+const getAuthenticatedUserId = (req) => req.user?._id?.toString() || req.user?.id?.toString();
+
 // Controllers
 const addToCart = async (req, res) => {
-    const userId = req.user?._id || req.body.userId;
+    const userId = getAuthenticatedUserId(req);
     if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
     if (!requireFields(res, ['itemId'], req.body)) return;
 
@@ -35,7 +38,7 @@ const addToCart = async (req, res) => {
 };
 
 const updateCart = async (req, res) => {
-    const userId = req.user?._id || req.body.userId;
+    const userId = getAuthenticatedUserId(req);
     if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
     if (!requireFields(res, ['itemId', 'quantity'], req.body)) return;
 
@@ -53,7 +56,7 @@ const updateCart = async (req, res) => {
 };
 
 const removeFromCart = async (req, res) => {
-    const userId = req.user?._id || req.body.userId;
+    const userId = getAuthenticatedUserId(req);
     if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
     if (!requireFields(res, ['itemId'], req.body)) return;
 
@@ -70,7 +73,7 @@ const removeFromCart = async (req, res) => {
 };
 
 const clearCart = async (req, res) => {
-    const userId = req.user?._id || req.body.userId;
+    const userId = getAuthenticatedUserId(req);
     if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
 
     try {
@@ -82,7 +85,7 @@ const clearCart = async (req, res) => {
 };
 
 const getUserCartData = async (req, res) => {
-    const userId = req.user?._id || req.body.userId;
+    const userId = getAuthenticatedUserId(req);
     if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
 
     try {
@@ -94,7 +97,7 @@ const getUserCartData = async (req, res) => {
 };
 
 const mergeCartData = async (req, res) => {
-    const userId = req.user?._id || req.body.userId;
+    const userId = getAuthenticatedUserId(req);
     if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
 
     try {

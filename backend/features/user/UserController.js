@@ -299,7 +299,7 @@ const resetPassword = async (req, res) => {
 // PROFILE
 const getUserProfile = async (req, res) => {
     try {
-        const userId = req.body.userId;
+        const userId = req.user?._id?.toString() || req.user?.id?.toString();
         if (!userId) return res.status(401).json({ success: false, message: "Unauthorized" });
         const user = await userModel.findById(userId).select('-password -otp -otpExpiry -tempPassword -refreshToken');
         if (!user) return res.status(404).json({ success: false, message: "User not found" });
@@ -387,7 +387,7 @@ const changePassword = async (req, res) => {
         const { id } = req.params;
         const { password, currentPassword } = req.body;
 
-        const authenticatedUserId = req.body.userId;
+        const authenticatedUserId = req.user?._id?.toString() || req.user?.id?.toString();
         if (!authenticatedUserId || authenticatedUserId !== id) {
             return res.status(403).json({ success: false, message: "Forbidden: You can only change your own password." });
         }

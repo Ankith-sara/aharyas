@@ -18,7 +18,6 @@ const adminAuth = (req, res, next) => {
             return res.status(403).json({ success: false, message: 'Forbidden. Admin access only.' });
         }
         req.user = { _id: decoded.id, role: decoded.role };
-        req.body.userId = decoded.id;
         next();
     } catch {
         return res.status(401).json({ success: false, message: 'Authentication failed.' });
@@ -128,7 +127,8 @@ const adminGoogleAuth = (req, res) => {
 
 // ── Mock Product Controllers
 const addProduct = (req, res) => {
-    const { name, price, userId } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const { name, price } = req.body;
     if (!name || !price) {
         return res.status(400).json({ success: false, message: 'Product parameters missing' });
     }
@@ -139,7 +139,7 @@ const addProduct = (req, res) => {
 
 const removeProduct = (req, res) => {
     const { id: productId } = req.params;
-    const { userId } = req.body;
+    const userId = req.user?._id || req.user?.id;
     
     const product = mockProducts.find(p => p._id === productId);
     if (!product) {

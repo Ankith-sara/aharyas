@@ -176,7 +176,7 @@ export default function Navbar() {
           <Link href="/" onClick={() => setSearch?.('')} className="flex items-center">
             <Image
               src={assets.logo}
-              className="w-28 md:w-36 h-auto object-contain filter invert mix-blend-screen"
+              className="w-28 md:w-36 h-auto object-contain mix-blend-screen contrast-200 invert"
               alt="Aharyas"
               width={144}
               height={42}

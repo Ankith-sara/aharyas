@@ -32,7 +32,7 @@ import { startAbandonedCartWorker } from './features/cart/abandonedCartWorker.js
 // App Config
 const app = express();
 const httpServer = createServer(app);
-const port = process.env.PORT || 4001;
+const port = process.env.PORT || 3040;
 
 const CRITICAL_ENV_VARS = [
     'MONGODB_URI',

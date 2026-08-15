@@ -18,7 +18,6 @@ const authUser = (req, res, next) => {
         }
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = { _id: decoded.id, role: decoded.role };
-        req.body.userId = decoded.id;
         next();
     } catch {
         return res.status(401).json({ success: false, message: 'Authentication failed.' });
@@ -31,7 +30,6 @@ const validateCartAdd = (req, res, next) => {
         productId: Joi.string().required(),
         size: Joi.string().required(),
         quantity: Joi.number().integer().min(1).required(),
-        userId: Joi.string().required(),
     });
     const { error } = schema.validate(req.body);
     if (error) {
@@ -45,7 +43,6 @@ const validateCartUpdate = (req, res, next) => {
         productId: Joi.string().required(),
         size: Joi.string().required(),
         quantity: Joi.number().integer().min(0).required(),
-        userId: Joi.string().required(),
     });
     const { error } = schema.validate(req.body);
     if (error) {
@@ -60,12 +57,13 @@ const mockWishlists = {};
 
 // ── Mock Controllers
 const getUserCart = (req, res) => {
-    const { userId } = req.body;
+    const userId = req.user?._id || req.user?.id;
     res.status(200).json({ success: true, cartData: mockCarts[userId] || {} });
 };
 
 const addToCart = (req, res) => {
-    const { userId, productId, size, quantity } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const { productId, size, quantity } = req.body;
     if (!mockCarts[userId]) mockCarts[userId] = {};
     if (!mockCarts[userId][productId]) mockCarts[userId][productId] = {};
     mockCarts[userId][productId][size] = (mockCarts[userId][productId][size] || 0) + quantity;
@@ -73,7 +71,8 @@ const addToCart = (req, res) => {
 };
 
 const updateCart = (req, res) => {
-    const { userId, productId, size, quantity } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const { productId, size, quantity } = req.body;
     if (!mockCarts[userId]) mockCarts[userId] = {};
     if (!mockCarts[userId][productId]) mockCarts[userId][productId] = {};
     if (quantity === 0) {
@@ -88,13 +87,14 @@ const updateCart = (req, res) => {
 };
 
 const clearCart = (req, res) => {
-    const { userId } = req.body;
+    const userId = req.user?._id || req.user?.id;
     mockCarts[userId] = {};
     res.status(200).json({ success: true, message: 'Cart cleared' });
 };
 
 const toggleWishlist = (req, res) => {
-    const { userId, productId } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const { productId } = req.body;
     if (!productId) {
         return res.status(400).json({ success: false, message: 'productId required' });
     }
@@ -110,7 +110,7 @@ const toggleWishlist = (req, res) => {
 };
 
 const getUserWishlist = (req, res) => {
-    const { userId } = req.body;
+    const userId = req.user?._id || req.user?.id;
     res.status(200).json({ success: true, wishlist: mockWishlists[userId] || [] });
 };
 

@@ -15,9 +15,9 @@ const handleError = (res, error, context) => {
 
 // Check ownership helper (IDOR protection)
 const verifyOwnership = (req, res) => {
-    const authenticatedId = req.user?._id?.toString() || req.body.userId;
+    const authenticatedId = req.user?._id?.toString() || req.user?.id?.toString();
     const isAdmin = req.user?.role === 'admin';
-    if (authenticatedId !== req.params.id && !isAdmin) {
+    if (!authenticatedId || (authenticatedId !== req.params.id && !isAdmin)) {
         res.status(403).json({ success: false, message: 'Access denied. You do not own this profile.' });
         return false;
     }
@@ -26,7 +26,7 @@ const verifyOwnership = (req, res) => {
 
 // Profile reads
 const getUserProfile = async (req, res) => {
-    const userId = req.body.userId;
+    const userId = req.user?._id?.toString() || req.user?.id?.toString();
     if (!userId)
         return res.status(401).json({ success: false, message: 'Unauthorized' });
     try {
@@ -94,7 +94,8 @@ const deleteAddress = async (req, res) => {
 // Password change
 const changePassword = async (req, res) => {
     const { id } = req.params;
-    const { userId: authenticatedId, currentPassword, password: newPassword } = req.body;
+    const { currentPassword, password: newPassword } = req.body;
+    const authenticatedId = req.user?._id?.toString() || req.user?.id?.toString();
 
     // Users may only change their own password
     if (!authenticatedId || authenticatedId !== id)

@@ -90,7 +90,7 @@ describe('changePassword ownership', () => {
     }
 
     async function changePasswordGuard(req, res) {
-        const authenticatedUserId = req.body.userId;
+        const authenticatedUserId = req.user?._id || req.user?.id;
         if (!authenticatedUserId || authenticatedUserId !== req.params.id) {
             return res.status(403).json({ success: false, message: 'Forbidden: You can only change your own password.' });
         }
@@ -101,7 +101,7 @@ describe('changePassword ownership', () => {
     }
 
     test('rejects when authenticated user does not match :id', async () => {
-        const req = { params: { id: 'user_B' }, body: { userId: 'user_A', password: 'newpassword123' } };
+        const req = { params: { id: 'user_B' }, user: { _id: 'user_A' }, body: { password: 'newpassword123' } };
         const res = buildMockRes();
         await changePasswordGuard(req, res);
         expect(res.status).toHaveBeenCalledWith(403);
@@ -109,14 +109,14 @@ describe('changePassword ownership', () => {
     });
 
     test('rejects short passwords', async () => {
-        const req = { params: { id: 'user_A' }, body: { userId: 'user_A', password: 'short' } };
+        const req = { params: { id: 'user_A' }, user: { _id: 'user_A' }, body: { password: 'short' } };
         const res = buildMockRes();
         await changePasswordGuard(req, res);
         expect(res.status).toHaveBeenCalledWith(400);
     });
 
     test('passes when authenticated user matches :id and password is valid', async () => {
-        const req = { params: { id: 'user_A' }, body: { userId: 'user_A', password: 'validpass123' } };
+        const req = { params: { id: 'user_A' }, user: { _id: 'user_A' }, body: { password: 'validpass123' } };
         const res = buildMockRes();
         await changePasswordGuard(req, res);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ success: true }));

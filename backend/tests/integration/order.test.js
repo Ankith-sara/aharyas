@@ -20,7 +20,6 @@ const authUser = (req, res, next) => {
         }
         const decoded = jwt.verify(token, JWT_SECRET);
         req.user = { _id: decoded.id, role: decoded.role };
-        req.body.userId = decoded.id;
         next();
     } catch {
         return res.status(401).json({ success: false, message: 'Authentication failed.' });
@@ -61,7 +60,6 @@ const validatePlaceOrder = (req, res, next) => {
             country: Joi.string().required(),
             phone: Joi.string().required(),
         }).required(),
-        userId: Joi.string().required(),
     });
     const { error } = schema.validate(req.body);
     if (error) {
@@ -111,7 +109,8 @@ beforeEach(() => {
 
 // ── Mock Controllers
 const placeOrder = (req, res) => {
-    const { userId, items, amount, address } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const { items, amount, address } = req.body;
     const newOrder = {
         _id: `order_cod_${Date.now()}`,
         userId,
@@ -127,7 +126,8 @@ const placeOrder = (req, res) => {
 };
 
 const placeOrderRazorpay = (req, res) => {
-    const { userId, items, amount, address } = req.body;
+    const userId = req.user?._id || req.user?.id;
+    const { items, amount, address } = req.body;
     const newOrder = {
         _id: `order_rp_${Date.now()}`,
         userId,

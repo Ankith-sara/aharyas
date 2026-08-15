@@ -15,10 +15,15 @@ const requireFields = (res, fields, body) => {
     return true;
 };
 
+// Helper to get authenticated userId
+const getAuthenticatedUserId = (req) => req.user?._id?.toString() || req.user?.id?.toString();
+
 // Controllers
 const addToWishlist = async (req, res) => {
     try {
-        const wishlist = await addItem(req.body);
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
+        const wishlist = await addItem({ ...req.body, userId });
         res.json({ success: true, message: 'Product added to wishlist', wishlist });
     } catch (error) {
         handleError(res, error, 'addToWishlist');
@@ -27,7 +32,9 @@ const addToWishlist = async (req, res) => {
 
 const removeFromWishlist = async (req, res) => {
     try {
-        const wishlist = await removeItem(req.body);
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
+        const wishlist = await removeItem({ ...req.body, userId });
         res.json({ success: true, message: 'Product removed from wishlist', wishlist });
     } catch (error) {
         handleError(res, error, 'removeFromWishlist');
@@ -36,7 +43,9 @@ const removeFromWishlist = async (req, res) => {
 
 const toggleWishlist = async (req, res) => {
     try {
-        const { wishlist, isAdded } = await toggleWishlistItem(req.body);
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
+        const { wishlist, isAdded } = await toggleWishlistItem({ ...req.body, userId });
         const message = isAdded ? 'Product added to wishlist' : 'Product removed from wishlist';
         res.json({ success: true, message, wishlist, isAdded });
     } catch (error) {
@@ -45,9 +54,10 @@ const toggleWishlist = async (req, res) => {
 };
 
 const getUserWishlist = async (req, res) => {
-    if (!requireFields(res, ['userId'], req.body)) return;
     try {
-        const wishlist = await fetchUserWishlist(req.body.userId);
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
+        const wishlist = await fetchUserWishlist(userId);
         res.json({ success: true, wishlist });
     } catch (error) {
         handleError(res, error, 'getUserWishlist');
@@ -55,9 +65,10 @@ const getUserWishlist = async (req, res) => {
 };
 
 const getWishlistWithDetails = async (req, res) => {
-    if (!requireFields(res, ['userId'], req.body)) return;
     try {
-        const wishlist = await fetchWishlistWithDetails(req.body.userId);
+        const userId = getAuthenticatedUserId(req);
+        if (!userId) return res.status(401).json({ success: false, message: 'Authentication required' });
+        const wishlist = await fetchWishlistWithDetails(userId);
         res.json({ success: true, wishlist });
     } catch (error) {
         handleError(res, error, 'getWishlistWithDetails');
