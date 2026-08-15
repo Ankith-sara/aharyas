@@ -234,7 +234,16 @@ const AnalyticsTab = ({ adminData }) => {
             },
         },
         scales: {
-            x: { grid: { color: "rgba(0,0,0,0.05)" }, ticks: { color: "#666", font: { size: 10 } } },
+            x: {
+                grid: { color: "rgba(0,0,0,0.05)" },
+                ticks: {
+                    display: true,
+                    color: "#333333",
+                    font: { size: 10, weight: "bold" },
+                    maxRotation: 0,
+                    autoSkip: true,
+                }
+            },
             y: { grid: { color: "rgba(0,0,0,0.05)" }, ticks: { color: "#666", font: { size: 10 } } },
         },
     };
@@ -1114,11 +1123,24 @@ const AnalyticsTab = ({ adminData }) => {
                                     <div className="h-64 relative">
                                         <Line
                                             data={{
-                                                labels: vercelAnalytics.byDay.map(d => {
-                                                    const dateVal = d.day || d.date || '';
-                                                    if (!dateVal) return '';
-                                                    const dateObj = new Date(dateVal);
-                                                    return isNaN(dateObj.getTime()) ? dateVal : `${dateObj.getDate()} ${MONTH_NAMES[dateObj.getMonth()]}`;
+                                                labels: (vercelAnalytics.byDay || []).map((d, index, arr) => {
+                                                    const rawDate = d.day || d.date || d.key || d.timestamp || d.time || d.period || d.start;
+                                                    if (rawDate) {
+                                                        let dateObj;
+                                                        if (typeof rawDate === 'number') {
+                                                            dateObj = new Date(rawDate);
+                                                        } else {
+                                                            const dateStr = String(rawDate);
+                                                            dateObj = new Date(dateStr.includes('T') ? dateStr : `${dateStr}T00:00:00`);
+                                                        }
+                                                        if (!isNaN(dateObj.getTime())) {
+                                                            return `${dateObj.getDate()} ${MONTH_NAMES[dateObj.getMonth()]}`;
+                                                        }
+                                                        return String(rawDate);
+                                                    }
+                                                    const fallbackDate = new Date();
+                                                    fallbackDate.setDate(fallbackDate.getDate() - (arr.length - 1 - index));
+                                                    return `${fallbackDate.getDate()} ${MONTH_NAMES[fallbackDate.getMonth()]}`;
                                                 }),
                                                 datasets: [
                                                     {

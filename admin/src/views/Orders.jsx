@@ -19,6 +19,7 @@ const ORDER_STATUSES = [
   'Processing',
   'Shipping',
   'Out of delivery',
+  'Cancelled',
   'Delivered',
 ];
 
@@ -27,6 +28,7 @@ const STATUS_CONFIG = {
   'Processing': { color: 'bg-yellow-50 text-yellow-700 border-yellow-200', dot: 'bg-yellow-500', icon: Clock },
   'Shipping': { color: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-500', icon: Truck },
   'Out of delivery': { color: 'bg-orange-50 text-orange-700 border-orange-200', dot: 'bg-orange-500', icon: Package2 },
+  'Cancelled': { color: 'bg-red-50 text-red-700 border-red-200', dot: 'bg-red-500', icon: X },
   'Delivered': { color: 'bg-green-50 text-green-700 border-green-200', dot: 'bg-green-500', icon: PackageCheck },
 };
 

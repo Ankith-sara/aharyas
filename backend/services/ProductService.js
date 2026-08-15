@@ -344,8 +344,8 @@ export const getProductById = async (productId) => {
     if (!productId)
         throw Object.assign(new Error('Product ID is required'), { statusCode: 400 });
 
-    // Increment view count directly (don't cache the write)
-    await productModel.findByIdAndUpdate(productId, { $inc: { viewCount: 1 } });
+    // Increment view count directly without modifying updatedAt timestamp
+    await productModel.findByIdAndUpdate(productId, { $inc: { viewCount: 1 } }, { timestamps: false });
 
     const product = await cacheGet(
         KEYS.PRODUCT_BY_ID(productId),
@@ -361,8 +361,8 @@ export const getProductBySlug = async (slug) => {
     if (!slug)
         throw Object.assign(new Error('Product slug is required'), { statusCode: 400 });
 
-    // Increment view count directly (don't cache the write)
-    await productModel.findOneAndUpdate({ slug }, { $inc: { viewCount: 1 } });
+    // Increment view count directly without modifying updatedAt timestamp
+    await productModel.findOneAndUpdate({ slug }, { $inc: { viewCount: 1 } }, { timestamps: false });
 
     const product = await cacheGet(
         KEYS.PRODUCT_BY_SLUG(slug),

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
       </head>
-      <body className="bg-white text-black min-h-screen flex flex-col font-sans selection:bg-black selection:text-white">
+      <body suppressHydrationWarning className="bg-white text-black min-h-screen flex flex-col font-sans selection:bg-black selection:text-white">
         <Providers>
           <Navbar />
           <SearchBar />

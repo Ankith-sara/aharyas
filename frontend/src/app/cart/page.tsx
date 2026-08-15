@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
+import ReactDOM from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useProducts } from '../../context/ProductContext';
@@ -21,6 +21,11 @@ export default function CartPage() {
   const [cartData, setCartData] = useState<any[]>([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<{ id: string; size: string } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const tempData: any[] = [];
@@ -34,6 +39,7 @@ export default function CartPage() {
     setCartData(tempData);
   }, [cartItems, products]);
 
+  /* Body scroll lock while modal is open */
   useEffect(() => {
     document.body.style.overflow = showDeleteModal ? 'hidden' : '';
     return () => {
@@ -41,199 +47,292 @@ export default function CartPage() {
     };
   }, [showDeleteModal]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') cancelDelete();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
   const handleDeleteClick = (id: string, size: string) => {
     setItemToDelete({ id, size });
     setShowDeleteModal(true);
   };
 
   const confirmDelete = () => {
-    if (itemToDelete) {
-      updateQuantity(itemToDelete.id, itemToDelete.size, 0);
-      setItemToDelete(null);
-    }
+    if (itemToDelete) updateQuantity(itemToDelete.id, itemToDelete.size, 0);
     setShowDeleteModal(false);
+    setItemToDelete(null);
   };
 
   const cancelDelete = () => {
-    setItemToDelete(null);
     setShowDeleteModal(false);
+    setItemToDelete(null);
   };
 
-  const isCartEmpty = cartData.length === 0;
+  const handleQuantityChange = (id: string, size: string, newQuantity: number) => {
+    if (newQuantity > 0) updateQuantity(id, size, newQuantity);
+  };
+
+  const handleCheckout = () => {
+    if (!cartData.length) return;
+    if (!token) {
+      router.push('/login?redirect=/place-order');
+      return;
+    }
+    router.push('/place-order');
+  };
 
   return (
-    <div className="min-h-screen bg-white text-black mt-16 sm:mt-20">
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white w-full max-w-sm p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[9px] uppercase tracking-[0.3em] text-gray-400 font-medium">Remove item</span>
-              <button onClick={cancelDelete} className="p-1 text-gray-400 hover:text-black transition-colors" aria-label="Close modal">
+    <div className="min-h-screen bg-white text-black mt-16">
+      {/* Delete Confirmation Portal */}
+      {showDeleteModal && mounted && ReactDOM.createPortal(
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 animate-fadeIn"
+            onClick={cancelDelete}
+          />
+          <div className="relative z-10 bg-white w-full sm:max-w-sm shadow-2xl sm:rounded-sm animate-slideUp flex flex-col">
+            <div className="flex-shrink-0 flex items-center justify-between gap-3 px-5 py-4 bg-gray-50 border-b border-gray-200">
+              <h3 className="text-sm font-semibold tracking-widest uppercase text-black">Remove Item</h3>
+              <button
+                onClick={cancelDelete}
+                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-black hover:bg-gray-200 transition-colors rounded-sm flex-shrink-0"
+                aria-label="Close"
+              >
                 <X size={16} />
               </button>
             </div>
-            <h3 className="text-base font-light text-black mb-2">Remove from cart?</h3>
-            <p className="text-xs text-gray-500 font-light mb-6 leading-relaxed">
-              Are you sure you want to remove this item? You can always add it back later.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={cancelDelete} className="flex-1 py-3 border border-gray-200 text-gray-700 text-xs uppercase tracking-[0.15em] font-medium hover:border-black transition-colors">
+            <div className="flex-1 px-5 py-5">
+              <p className="text-sm text-gray-600 font-light leading-relaxed">
+                Are you sure you want to remove this item from your cart?
+              </p>
+            </div>
+            <div className="flex-shrink-0 flex items-center justify-end gap-2.5 px-5 py-4 border-t border-gray-200 bg-white">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 py-2.5 sm:py-3 border border-gray-300 text-black font-light tracking-wide hover:bg-gray-50 active:bg-gray-100 transition-all duration-300 uppercase text-sm cursor-pointer"
+              >
                 Cancel
               </button>
-              <button onClick={confirmDelete} className="flex-1 py-3 bg-black text-white text-xs uppercase tracking-[0.15em] font-medium hover:bg-gray-900 transition-colors">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2.5 sm:py-3 bg-white text-black border border-gray-300 font-light tracking-wide hover:bg-red-100 hover:text-red-600 active:bg-red-200 transition-all duration-300 uppercase text-sm cursor-pointer"
+              >
                 Remove
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Main Container */}
-      <div className="py-6 sm:py-10 px-4 sm:px-8 lg:px-20 max-w-7xl mx-auto">
-        <div className="text-2xl sm:text-3xl mb-8">
-          <Title text1="YOUR" text2="CART" />
-        </div>
-
-        {isCartEmpty ? (
-          <div className="py-16 sm:py-24 text-center border-t border-gray-200">
-            <div className="w-16 h-16 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center mx-auto mb-4 text-gray-400">
-              <ShoppingBag size={24} strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg font-light tracking-wide text-black mb-2">Your cart is empty</h2>
-            <p className="text-xs text-gray-500 font-light max-w-sm mx-auto mb-8 leading-relaxed">
-              Looks like you haven&apos;t added any artisanal creations to your cart yet.
-            </p>
-            <Link
-              href="/shop/collection"
-              className="inline-block px-8 py-3.5 bg-black text-white text-xs uppercase tracking-[0.2em] font-medium hover:bg-gray-900 transition-colors"
-            >
-              Explore Collection
-            </Link>
+      {/* Page Header */}
+      <section className="py-6 sm:py-10 px-4 sm:px-6 lg:px-20">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="text-2xl sm:text-3xl mb-2">
+            <Title text1="SHOPPING" text2="CART" />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 lg:gap-12 items-start">
-            {/* Cart Items List */}
-            <div className="border-t border-gray-200 divide-y divide-gray-200">
-              {cartData.map((item, index) => {
-                const productData = products.find((product) => product._id === item._id);
-                if (!productData) return null;
+          {cartData.length > 0 && (
+            <p className="text-xs text-gray-500 font-light">
+              {cartData.length} item{cartData.length !== 1 ? 's' : ''} in your cart
+            </p>
+          )}
+        </div>
+      </section>
 
-                const hasDiscount = productData.discount > 0;
-                const unitPrice = hasDiscount
-                  ? Math.round(productData.price * (1 - productData.discount / 100))
-                  : productData.price;
-                const itemTotal = unitPrice * item.quantity;
+      <section className="px-4 sm:px-6 lg:px-20 pb-16">
+        <div className="max-w-7xl mx-auto">
 
-                return (
-                  <div key={index} className="py-6 flex gap-4 sm:gap-6 items-start group">
-                    {/* Thumbnail */}
-                    <Link href={getProductUrl(productData)} className="flex-shrink-0 w-20 h-24 sm:w-24 sm:h-28 bg-gray-50 overflow-hidden relative border border-gray-100">
-                      <Image
-                        src={productData.images[0]}
-                        alt={productData.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    </Link>
-
-                    {/* Details */}
-                    <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch">
-                      <div>
-                        <Link
-                          href={getProductUrl(productData)}
-                          className="text-sm sm:text-base font-light text-black tracking-wide leading-snug line-clamp-2 hover:underline mb-1"
-                        >
-                          {productData.name}
-                        </Link>
-                        <div className="flex items-center gap-3 text-xs text-gray-500 font-light">
-                          {item.size && (
-                            <span className="px-2 py-0.5 border border-gray-200 text-[10px] uppercase tracking-wider text-black">
-                              Size: {item.size}
-                            </span>
-                          )}
-                          <span className="text-gray-400">
-                            {currency}{unitPrice.toLocaleString('en-IN')} each
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Quantity & Actions */}
-                      <div className="flex items-center justify-between mt-3 pt-2">
-                        {/* Quantity Controls */}
-                        <div className="flex items-center border border-gray-200 bg-white">
-                          <button
-                            onClick={() => {
-                              if (item.quantity === 1) {
-                                handleDeleteClick(item._id, item.size);
-                              } else {
-                                updateQuantity(item._id, item.size, item.quantity - 1);
-                              }
-                            }}
-                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
-                            aria-label="Decrease quantity"
-                          >
-                            <Minus size={12} />
-                          </button>
-                          <span className="w-8 text-center text-xs font-light text-black">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item._id, item.size, item.quantity + 1)}
-                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-black hover:bg-gray-50 transition-colors"
-                            aria-label="Increase quantity"
-                          >
-                            <Plus size={12} />
-                          </button>
-                        </div>
-
-                        {/* Total price & Delete button */}
-                        <div className="flex items-center gap-4">
-                          <span className="text-sm sm:text-base font-medium text-black">
-                            {currency}{itemTotal.toLocaleString('en-IN')}
-                          </span>
-                          <button
-                            onClick={() => handleDeleteClick(item._id, item.size)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 transition-colors"
-                            aria-label="Remove item"
-                          >
-                            <Trash2 size={16} strokeWidth={1.5} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Cart Summary Sidebar */}
-            <div className="lg:sticky lg:top-28 space-y-6">
-              <CartTotal />
-              <button
-                onClick={() => router.push('/place-order')}
-                className="w-full py-4 bg-black text-white text-xs uppercase tracking-[0.25em] font-medium hover:bg-gray-900 transition-colors shadow-sm active:scale-[0.99]"
-              >
-                Proceed to Checkout
-              </button>
-
-              <div className="border border-gray-100 p-4 space-y-3 bg-gray-50/50">
-                <div className="flex items-start gap-3">
-                  <Package size={16} className="text-gray-400 flex-shrink-0 mt-0.5" />
+          {cartData.length === 0 ? (
+            <div className="border border-gray-200">
+              <div className="h-px bg-black" />
+              <div className="grid md:grid-cols-2 min-h-[420px]">
+                {/* Left — text */}
+                <div className="flex flex-col justify-between p-8 sm:p-12 border-r border-gray-200">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-black font-semibold">Free Delivery</p>
-                    <p className="text-xs text-gray-500 font-light">On orders above ₹999 across India</p>
+                    <h2 className="text-3xl sm:text-4xl font-light tracking-wide text-black leading-snug mb-4">
+                      Your cart<br />
+                      <span className="font-semibold">awaits.</span>
+                    </h2>
+                    <p className="text-sm text-gray-500 font-light leading-relaxed max-w-xs">
+                      Each piece in our collection is handcrafted by skilled artisans across India. Begin your journey.
+                    </p>
+                  </div>
+                  <div className="pt-8">
+                    <button
+                      onClick={() => router.push('/shop/collection')}
+                      className="inline-flex items-center gap-3 px-8 py-3.5 bg-black text-white text-xs tracking-[0.2em] uppercase font-light hover:bg-gray-900 transition-colors cursor-pointer"
+                    >
+                      Browse Collection
+                    </button>
+                  </div>
+                </div>
+
+                {/* Right — decorative */}
+                <div className="hidden md:flex items-center justify-center bg-gray-50 relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'repeating-linear-gradient(0deg, #000 0px, #000 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, #000 0px, #000 1px, transparent 1px, transparent 40px)' }} />
+                  <div className="relative z-10 text-center px-8">
+                    <ShoppingBag size={48} strokeWidth={0.8} className="text-gray-300 mx-auto mb-4" />
+                    <p className="text-xs tracking-[0.25em] text-gray-400 uppercase">Nothing here yet</p>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-col lg:grid lg:grid-cols-[1fr_380px] xl:grid-cols-[1fr_420px] gap-6 lg:gap-8">
+              <div className="space-y-3">
+                <div className="hidden md:flex items-center gap-3 px-5 py-3.5 bg-gray-50 border border-gray-200">
+                  <Package size={14} className="text-gray-400" />
+                  <span className="text-xs uppercase tracking-widest text-gray-500 font-light">
+                    {cartData.length} Item{cartData.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
 
-        <div className="mt-16 sm:mt-24">
-          <RecentlyViewed />
+                {cartData.map((item, index) => {
+                  const productData = products.find((p) => p._id === item._id);
+                  if (!productData) return (
+                    <div key={index} className="p-4 border-l-4 border-red-400 bg-red-50">
+                      <p className="text-sm font-medium text-red-800">Product unavailable</p>
+                    </div>
+                  );
+
+                  const discountedPrice = Math.round(productData.price * (1 - (productData.discount || 0) / 100));
+                  const subtotal = (discountedPrice * item.quantity).toFixed(2);
+
+                  return (
+                    <div key={index} className="bg-white border border-gray-200 hover:shadow-sm transition-shadow">
+                      <div className="p-3 sm:p-4">
+                        <div className="flex gap-3 sm:gap-4">
+                          <Link href={getProductUrl(productData)} className="flex-shrink-0">
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 overflow-hidden">
+                              <img
+                                src={productData.images[0]}
+                                alt={productData.name}
+                                className="w-full h-full object-contain"
+                              />
+                            </div>
+                          </Link>
+
+                          <div className="flex-1 min-w-0 flex flex-col justify-between gap-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <Link href={getProductUrl(productData)} className="min-w-0 flex-1">
+                                <h3 className="font-medium text-sm sm:text-base lg:text-md text-black tracking-wide hover:text-gray-700 transition-colors">
+                                  {productData.name}
+                                </h3>
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteClick(item._id, item.size)}
+                                className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all rounded-sm cursor-pointer"
+                                aria-label="Remove item"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                              {item.size !== 'N/A' && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[10px] uppercase tracking-wider text-gray-400">Size</span>
+                                  <span className="text-[10px] font-medium border border-gray-200 px-1.5 py-0.5">{item.size}</span>
+                                </div>
+                              )}
+                              {productData.discount > 0 ? (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="text-xs font-semibold text-red-600">{currency}{discountedPrice}</span>
+                                  <span className="text-[10px] text-gray-400 line-through">{currency}{productData.price}</span>
+                                  <span className="text-[9px] bg-red-100 text-red-600 font-bold px-1 py-0.5">{productData.discount}% OFF</span>
+                                </div>
+                              ) : (
+                                <span className="text-xs font-medium">{currency}{productData.price}</span>
+                              )}
+                            </div>
+
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center border border-gray-300">
+                                <button
+                                  onClick={() => handleQuantityChange(item._id, item.size, item.quantity - 1)}
+                                  disabled={item.quantity <= 1}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors border-r border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                                  aria-label="Decrease"
+                                >
+                                  <Minus size={11} />
+                                </button>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  value={item.quantity}
+                                  onChange={(e) => handleQuantityChange(item._id, item.size, parseInt(e.target.value) || 1)}
+                                  className="w-10 h-8 text-center text-xs font-medium focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                />
+                                <button
+                                  onClick={() => handleQuantityChange(item._id, item.size, item.quantity + 1)}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 transition-colors border-l border-gray-300 cursor-pointer"
+                                  aria-label="Increase"
+                                >
+                                  <Plus size={11} />
+                                </button>
+                              </div>
+
+                              <div className="text-right">
+                                <span className="block text-[9px] uppercase tracking-wider text-gray-400 mb-0.5">Subtotal</span>
+                                <span className="text-sm font-semibold">{currency}{subtotal}</span>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Order Summary sidebar */}
+              <div className="lg:sticky lg:top-24 h-fit">
+                <div className="bg-white border border-gray-200 shadow-sm">
+                  <div className="p-4 sm:p-5 border-b border-gray-200 bg-gray-50">
+                    <h3 className="text-sm font-medium tracking-wider uppercase">Order Summary</h3>
+                  </div>
+                  <div className="p-4 sm:p-5 space-y-5">
+                    <CartTotal hideShipping />
+                    <div className="space-y-2.5">
+                      <button
+                        onClick={handleCheckout}
+                        disabled={cartData.length === 0}
+                        className="w-full py-3.5 bg-black text-white font-light tracking-[0.15em] text-xs sm:text-sm hover:bg-gray-800 active:bg-gray-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        PROCEED TO CHECKOUT
+                      </button>
+                      <button
+                        onClick={() => router.push('/shop/collection')}
+                        className="w-full py-3.5 border border-gray-300 text-black font-light tracking-wide hover:border-black hover:bg-gray-50 transition-all text-xs sm:text-sm cursor-pointer"
+                      >
+                        CONTINUE SHOPPING
+                      </button>
+                    </div>
+                    <div className="pt-3 border-t border-gray-100 flex items-center justify-center gap-2">
+                      <span className="uppercase tracking-wider text-[10px] text-gray-400">Secure Checkout</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          )}
         </div>
-      </div>
+      </section>
+
+      {/* Recently Viewed */}
+      {cartData.length > 0 && (
+        <section className="px-4 sm:px-6 lg:px-20 pb-16">
+          <div className="max-w-7xl mx-auto">
+            <RecentlyViewed />
+          </div>
+        </section>
+      )}
+
     </div>
   );
 }

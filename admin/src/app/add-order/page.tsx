@@ -16,6 +16,7 @@ const ORDER_STATUSES = [
   'Processing',
   'Shipping',
   'Out of delivery',
+  'Cancelled',
   'Delivered',
 ];
 

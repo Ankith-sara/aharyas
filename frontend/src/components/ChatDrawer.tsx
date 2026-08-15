@@ -47,7 +47,7 @@ export default function ChatDrawer() {
     {
       id: 1,
       sender: 'bot',
-      text: "Namaste! 🙏 I'm your Aharyas AI Assistant. How can I help you explore our handcrafted luxury collections today?",
+      text: "Namaste! I'm your Aharyas AI Assistant. How can I help you explore our handcrafted luxury collections today?",
       suggestions: [
         'What is Aharyas?',
         'What crafts do you carry?',
@@ -69,7 +69,7 @@ export default function ChatDrawer() {
     // 1. Greetings
     if (GREETINGS_REGEX.test(trimmed) && trimmed.length < 20) {
       return {
-        text: `Namaste${user?.name ? ` ${user.name}` : ''}! 🙏 How can I assist you with Aharyas today?`,
+        text: `Namaste${user?.name ? ` ${user.name}` : ''}! How can I assist you with Aharyas today?`,
         suggestions: ['What is Aharyas?', 'What crafts do you carry?', 'Best selling products', 'Track my order'],
       };
     }
@@ -183,7 +183,7 @@ export default function ChatDrawer() {
     // 8. Return Policy
     if (RETURN_REGEX.test(trimmed)) {
       return {
-        text: "📋 **Return & Exchange Policy**:\n• Replacements or size exchanges accepted within 15 days of delivery.\n• Items must be unused with original tags intact.\n• Note: We offer exchanges & replacements (no cash refunds).\n• Cancellations accepted within 6 hours of order placement.",
+        text: "Return & Exchange Policy:\n• Replacements or size exchanges accepted within 15 days of delivery.\n• Items must be unused with original tags intact.\n• Note: We offer exchanges & replacements (no cash refunds).\n• Cancellations accepted within 6 hours of order placement.",
         suggestions: ['Shipping Policy', 'Contact Support'],
         links: [{ label: 'Read Full Policy', url: '/refund-policy' }],
       };
@@ -192,7 +192,7 @@ export default function ChatDrawer() {
     // 9. Shipping Policy
     if (SHIPPING_REGEX.test(trimmed)) {
       return {
-        text: "🚚 **Shipping & Delivery**:\n• Free express shipping on domestic orders above ₹999.\n• Standard delivery: 0–7 business days across India.\n• Tracking details sent via SMS/Email upon dispatch.",
+        text: "Shipping & Delivery:\n• Free express shipping on domestic orders above ₹999.\n• Standard delivery: 0–7 business days across India.\n• Tracking details sent via SMS/Email upon dispatch.",
         suggestions: ['Return Policy', 'Track Order'],
         links: [{ label: 'Shipping Details', url: '/shipping-policy' }],
       };
@@ -201,7 +201,7 @@ export default function ChatDrawer() {
     // 10. Support
     if (SUPPORT_REGEX.test(trimmed)) {
       return {
-        text: "Our dedicated support team is here to assist you:\n\n📧 **Email**: aharyasofficial@gmail.com\n📞 **Phone**: +91 9063284008\n🕒 **Hours**: Mon – Sat, 9:00 AM – 6:00 PM IST",
+        text: "Our dedicated support team is here to assist you:\n\n Email: aharyasofficial@gmail.com\n📞 **Phone**: +91 9063284008\n🕒 **Hours**: Mon – Sat, 9:00 AM – 6:00 PM IST",
         suggestions: ['Return Policy', 'Track Order'],
         links: [{ label: 'Contact Us', url: '/contact' }],
       };
@@ -264,11 +264,11 @@ export default function ChatDrawer() {
         className={`fixed bottom-6 right-6 z-40 bg-black text-white p-3.5 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 border border-white/20 flex items-center justify-center group ${
           isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'
         }`}
-        aria-label="Open Aharyas AI Assistant"
+        aria-label="Ask ఆ Assistant"
       >
         <MessageSquareText size={20} />
         <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out text-xs font-light tracking-wide pl-0 group-hover:pl-2">
-          Ask Aharyas AI
+          Ask ఆ
         </span>
       </button>
 
