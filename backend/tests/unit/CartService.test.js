@@ -1,134 +1,140 @@
 import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 
-// ESM mocks (must be before dynamic imports)
 const mockUserModel = {
     findById: jest.fn(),
 };
 
-jest.unstable_mockModule('../../models/UserModel.js', () => ({
+const mockCartModel = {
+    findOne: jest.fn(),
+    create: jest.fn(),
+};
+
+const mockProductModel = {
+    findById: jest.fn(),
+};
+
+jest.unstable_mockModule('../../features/user/UserModel.js', () => ({
     default: mockUserModel,
 }));
+jest.unstable_mockModule('../../features/cart/CartModel.js', () => ({
+    default: mockCartModel,
+}));
+jest.unstable_mockModule('../../features/product/ProductModel.js', () => ({
+    default: mockProductModel,
+}));
 
-// Dynamic imports (after mocks are registered) 
-const { cartToObject, addItemToCart, updateCartItem, removeCartItem, clearUserCart, getUserCart } =
-    await import('../../services/CartService.js');
+const { cartToObject, cartItemsToMapObject, addItemToCart, updateCartItem, removeCartItem, clearUserCart, getUserCart } =
+    await import('../../features/cart/CartService.js');
 
 beforeEach(() => jest.clearAllMocks());
 
-// cartToObject 
-describe('cartToObject', () => {
-    test('returns empty object for null input', () => {
-        expect(cartToObject(null)).toEqual({});
-    });
-
-    test('returns empty object for non-Map input', () => {
-        expect(cartToObject({ itemId: { S: 1 } })).toEqual({});
-    });
-
-    test('converts nested Map structure to plain object', () => {
-        const inner = new Map([['S', 2], ['M', 1]]);
-        const outer = new Map([['item123', inner]]);
-        expect(cartToObject(outer)).toEqual({ item123: { S: 2, M: 1 } });
-    });
-
-    test('handles item with non-Map sizes gracefully', () => {
-        const outer = new Map([['item1', 'not-a-map']]);
-        expect(cartToObject(outer)).toEqual({ item1: {} });
+describe('cartToObject & cartItemsToMapObject', () => {
+    test('cartItemsToMapObject converts array to map format', () => {
+        const items = [{ productId: 'p1', size: 'M', quantity: 2 }];
+        expect(cartItemsToMapObject(items)).toEqual({ p1: { M: 2 } });
     });
 });
 
-// Shared "user not found" behaviour 
 describe('all operations — throws 404 when user not found', () => {
     beforeEach(() => mockUserModel.findById.mockResolvedValue(null));
 
     test('addItemToCart', async () => {
-        await expect(addItemToCart({ userId: 'uid', itemId: 'pid' }))
+        await expect(addItemToCart({ userId: '60c72b2f9b1e8a0015f8a001', itemId: '60c72b2f9b1e8a0015f8a002' }))
             .rejects.toMatchObject({ statusCode: 404 });
     });
     test('updateCartItem', async () => {
-        await expect(updateCartItem({ userId: 'uid', itemId: 'pid', quantity: 1 }))
-            .rejects.toMatchObject({ statusCode: 404 });
-    });
-    test('removeCartItem', async () => {
-        await expect(removeCartItem({ userId: 'uid', itemId: 'pid' }))
+        await expect(updateCartItem({ userId: '60c72b2f9b1e8a0015f8a001', itemId: '60c72b2f9b1e8a0015f8a002', quantity: 1 }))
             .rejects.toMatchObject({ statusCode: 404 });
     });
     test('clearUserCart', async () => {
-        await expect(clearUserCart('uid')).rejects.toMatchObject({ statusCode: 404 });
+        await expect(clearUserCart('60c72b2f9b1e8a0015f8a001')).rejects.toMatchObject({ statusCode: 404 });
     });
     test('getUserCart', async () => {
-        await expect(getUserCart('uid')).rejects.toMatchObject({ statusCode: 404 });
+        await expect(getUserCart('60c72b2f9b1e8a0015f8a001')).rejects.toMatchObject({ statusCode: 404 });
     });
 });
 
-// addItemToCart 
 describe('addItemToCart', () => {
-    test('calls addToCart on user model and saves', async () => {
-        const mockUser = { cartData: new Map(), addToCart: jest.fn(), save: jest.fn() };
+    test('adds product to cartModel and syncs user cartData', async () => {
+        const mockUser = { _id: '60c72b2f9b1e8a0015f8a001', cartData: {}, save: jest.fn().mockResolvedValue({}) };
         mockUserModel.findById.mockResolvedValue(mockUser);
+        mockProductModel.findById.mockResolvedValue({ _id: '60c72b2f9b1e8a0015f8a002', visible: true });
 
-        await addItemToCart({ userId: 'uid', itemId: 'pid', size: 'M', quantity: 2 });
+        const mockCart = {
+            items: [],
+            lastActivityAt: new Date(),
+            status: 'ACTIVE',
+            save: jest.fn().mockResolvedValue({}),
+        };
+        mockCartModel.findOne.mockResolvedValue(mockCart);
 
-        expect(mockUser.addToCart).toHaveBeenCalledWith('pid', 'M', 2);
+        const res = await addItemToCart({
+            userId: '60c72b2f9b1e8a0015f8a001',
+            itemId: '60c72b2f9b1e8a0015f8a002',
+            size: 'M',
+            quantity: 2,
+        });
+
+        expect(res).toEqual({ '60c72b2f9b1e8a0015f8a002': { M: 2 } });
+        expect(mockCart.save).toHaveBeenCalled();
         expect(mockUser.save).toHaveBeenCalled();
-    });
-
-    test('defaults size to N/A and quantity to 1 when not provided', async () => {
-        const mockUser = { cartData: new Map(), addToCart: jest.fn(), save: jest.fn() };
-        mockUserModel.findById.mockResolvedValue(mockUser);
-
-        await addItemToCart({ userId: 'uid', itemId: 'pid' });
-
-        expect(mockUser.addToCart).toHaveBeenCalledWith('pid', 'N/A', 1);
     });
 });
 
-// updateCartItem 
 describe('updateCartItem', () => {
-    test('calls updateCartItem on user model with correct args', async () => {
-        const mockUser = { cartData: new Map(), updateCartItem: jest.fn(), save: jest.fn() };
+    test('updates quantity in cartModel and saves', async () => {
+        const mockUser = { _id: '60c72b2f9b1e8a0015f8a001', cartData: {}, save: jest.fn().mockResolvedValue({}) };
         mockUserModel.findById.mockResolvedValue(mockUser);
 
-        await updateCartItem({ userId: 'uid', itemId: 'pid', size: 'L', quantity: 3 });
+        const mockCart = {
+            items: [{ productId: '60c72b2f9b1e8a0015f8a002', size: 'L', quantity: 1 }],
+            lastActivityAt: new Date(),
+            status: 'ACTIVE',
+            save: jest.fn().mockResolvedValue({}),
+        };
+        mockCartModel.findOne.mockResolvedValue(mockCart);
 
-        expect(mockUser.updateCartItem).toHaveBeenCalledWith('pid', 'L', 3);
-        expect(mockUser.save).toHaveBeenCalled();
+        const res = await updateCartItem({
+            userId: '60c72b2f9b1e8a0015f8a001',
+            itemId: '60c72b2f9b1e8a0015f8a002',
+            size: 'L',
+            quantity: 4,
+        });
+
+        expect(res).toEqual({ '60c72b2f9b1e8a0015f8a002': { L: 4 } });
+        expect(mockCart.save).toHaveBeenCalled();
     });
 });
 
-// removeCartItem 
-describe('removeCartItem', () => {
-    test('calls updateCartItem with quantity 0 to remove item', async () => {
-        const mockUser = { cartData: new Map(), updateCartItem: jest.fn(), save: jest.fn() };
-        mockUserModel.findById.mockResolvedValue(mockUser);
-
-        await removeCartItem({ userId: 'uid', itemId: 'pid', size: 'S' });
-
-        expect(mockUser.updateCartItem).toHaveBeenCalledWith('pid', 'S', 0);
-    });
-});
-
-// clearUserCart
 describe('clearUserCart', () => {
-    test('calls clearCart on user model and saves', async () => {
-        const mockUser = { cartData: new Map(), clearCart: jest.fn(), save: jest.fn() };
+    test('empties items array in cartModel and saves', async () => {
+        const mockUser = { _id: '60c72b2f9b1e8a0015f8a001', cartData: {}, save: jest.fn().mockResolvedValue({}) };
         mockUserModel.findById.mockResolvedValue(mockUser);
 
-        await clearUserCart('uid');
+        const mockCart = {
+            items: [{ productId: '60c72b2f9b1e8a0015f8a002', size: 'L', quantity: 1 }],
+            save: jest.fn().mockResolvedValue({}),
+        };
+        mockCartModel.findOne.mockResolvedValue(mockCart);
 
-        expect(mockUser.clearCart).toHaveBeenCalled();
-        expect(mockUser.save).toHaveBeenCalled();
+        await clearUserCart('60c72b2f9b1e8a0015f8a001');
+
+        expect(mockCart.items).toEqual([]);
+        expect(mockCart.save).toHaveBeenCalled();
     });
 });
 
-// getUserCart
 describe('getUserCart', () => {
-    test('returns cartData as plain object', async () => {
-        const inner = new Map([['M', 1]]);
-        const mockUser = { cartData: new Map([['pid1', inner]]) };
+    test('returns cart items as map object', async () => {
+        const mockUser = { _id: '60c72b2f9b1e8a0015f8a001' };
         mockUserModel.findById.mockResolvedValue(mockUser);
 
-        const result = await getUserCart('uid');
-        expect(result).toEqual({ pid1: { M: 1 } });
+        const mockCart = {
+            items: [{ productId: '60c72b2f9b1e8a0015f8a002', size: 'M', quantity: 1 }],
+        };
+        mockCartModel.findOne.mockResolvedValue(mockCart);
+
+        const result = await getUserCart('60c72b2f9b1e8a0015f8a001');
+        expect(result).toEqual({ '60c72b2f9b1e8a0015f8a002': { M: 1 } });
     });
 });

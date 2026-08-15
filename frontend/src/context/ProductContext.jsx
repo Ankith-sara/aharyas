@@ -106,10 +106,21 @@ const ProductContextProvider = ({ children }) => {
     const [search, setSearch] = useState("");
     const [showSearch, setShowSearch] = useState(false);
     const [selectedSubCategory, setSelectedSubCategoryState] = useState("");
+    const [currency, setCurrencyState] = useState("₹");
     const [isLoading, setIsLoading] = useState(false);
     const isMounted = useRef(true);
 
     useEffect(() => { isMounted.current = true; return () => { isMounted.current = false; }; }, []);
+
+    useEffect(() => {
+        const storedCurrency = safeRead("currencySymbol", "₹");
+        if (storedCurrency) setCurrencyState(storedCurrency);
+    }, []);
+
+    const setCurrency = useCallback((symbol) => {
+        setCurrencyState(symbol);
+        safeWrite("currencySymbol", symbol);
+    }, []);
 
     // Persist subcategory
     const setSelectedSubCategory = useCallback((cat) => {
@@ -222,7 +233,8 @@ const ProductContextProvider = ({ children }) => {
         getProductById, searchProducts, filterProducts,
         refreshProducts,
         addProductToRecentlyViewed, getRecentlyViewed, clearRecentlyViewed,
-        currency: "₹",
+        currency,
+        setCurrency,
         backendUrl: import.meta.env.VITE_BACKEND_URL,
         getProductUrl,
         createSlug,
@@ -231,6 +243,7 @@ const ProductContextProvider = ({ children }) => {
         setSelectedSubCategory, getProductById, searchProducts, filterProducts,
         refreshProducts,
         addProductToRecentlyViewed, getRecentlyViewed, clearRecentlyViewed,
+        currency, setCurrency,
     ]);
 
     return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;

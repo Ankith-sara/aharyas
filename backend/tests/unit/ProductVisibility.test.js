@@ -6,11 +6,11 @@ const mockProductModel = {
     find: jest.fn(),
 };
 
-jest.unstable_mockModule('../../models/ProductModel.js', () => ({
+jest.unstable_mockModule('../../features/product/ProductModel.js', () => ({
     default: mockProductModel,
 }));
 
-jest.unstable_mockModule('../../services/CacheService.js', () => ({
+jest.unstable_mockModule('../../features/product/CacheService.js', () => ({
     cacheGet: jest.fn((key, fetcher) => fetcher()),
     invalidateOnProductChange: jest.fn().mockResolvedValue(true),
     KEYS: {
@@ -21,7 +21,7 @@ jest.unstable_mockModule('../../services/CacheService.js', () => ({
     }
 }));
 
-const { toggleProductVisibility, getAllProductsPublic } = await import('../../services/ProductService.js');
+const { toggleProductVisibility, getAllProductsPublic } = await import('../../features/product/ProductService.js');
 
 beforeEach(() => {
     jest.clearAllMocks();

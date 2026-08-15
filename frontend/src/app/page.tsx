@@ -4,8 +4,8 @@ import LatestCollection from '../components/LatestCollection';
 import BestSeller from '../components/BestSeller';
 import WhatWeDo from '../components/WhatWeDo';
 import ExploreCollections from '../components/ExploreCollections';
-import CompanyProducts from '../components/CompanyProducts';
-import NewsletterBox from '../components/NewsletterBox';
+import DoodleCelebration from '../components/Doodle-Celebration';
+import TrustedPartners from '../components/TrustedPartners';
 
 export const metadata: Metadata = {
   title: 'Aharyas — Handcrafted Indian Fashion & Artisan Wearables',
@@ -20,9 +20,9 @@ export default function HomePage() {
       <ExploreCollections />
       <LatestCollection />
       <BestSeller />
-      <CompanyProducts />
+      <TrustedPartners />
       {/* <WhatWeDo /> */}
-      <NewsletterBox />
+      <DoodleCelebration />
     </div>
   );
 }

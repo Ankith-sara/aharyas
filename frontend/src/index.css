@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-primary: #000000;
+  --color-surface-extra-light: #ffffff;
+  --color-surface-product-background: #f4f4f5;
+  --aspect-ratio-portrait: 1.333;
+  --transition-enter: 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  --transition-enter-slow: 0.5s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -20,9 +29,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-
 ::-webkit-scrollbar {
   display: none;
+}
+
+/* Zero CLS Layout Placeholder Guards */
+.placeholder-portrait {
+  display: block;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+.placeholder-portrait::before {
+  content: "";
+  display: block;
+  width: 100%;
+  padding-top: 133.333%;
+}
+.placeholder-portrait > * {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 @keyframes fadeIn {
@@ -124,7 +152,7 @@ input[type="search"]::-webkit-search-results-decoration {
   appearance: none;
 }
 
-/* ── Shimmer skeleton ── */
+/* Shimmer skeleton */
 @keyframes shimmer {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
@@ -143,6 +171,43 @@ input[type="search"]::-webkit-search-results-decoration {
   will-change: transform;
 }
 
-/* ── Scrollbar hide ── */
+/* Scrollbar hide */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Product Card Image Slider */
+.scrollable-images {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.scrollable-images::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.product-image-wrapper {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background-color: #f3f4f6;
+  position: relative;
+}
+
+.product-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: smooth;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}

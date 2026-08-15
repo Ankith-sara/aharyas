@@ -21,16 +21,16 @@ interface Message {
 
 const GREETINGS_REGEX = /\b(hi|hello|hey|namaste|greetings|good morning|good afternoon|good evening|hiya|helo)\b/i;
 const BRAND_REGEX = /\b(what is aharyas|about aharyas|who is aharyas|tell me about aharyas|brand|who created|founded|avani|what do you do)\b/i;
-const CRAFTS_REGEX = /\b(craft|crafts|ikkat|kalamkari|zardozi|weaving|artisan|artisans|heritage|technique)\b/i;
-const BESTSELLER_REGEX = /\b(best product|best products|bestseller|bestsellers|popular|top items|recommend|recommendation|trending|must buy)\b/i;
+const CRAFTS_REGEX = /\b(craft|crafts|what crafts do you carry|ikkat|kalamkari|zardozi|weaving|artisan|artisans|heritage|technique)\b/i;
+const BESTSELLER_REGEX = /\b(best\s*sell(ing|er)?s?|best product|best products|bestseller|bestsellers|popular|top items|recommend|recommendation|trending|must buy)\b/i;
 const CHEAPEST_REGEX = /\b(least value|lowest price|cheapest|least expensive|budget|entry level|minimum price|lowest cost|value for money|affordable)\b/i;
 const EXPENSIVE_REGEX = /\b(highest price|most expensive|luxury|costliest|maximum price|premium|flagship)\b/i;
-const ORDER_TRACK_REGEX = /\b(track|where is my order|order status|order id|tracking)\b/i;
-const CART_REGEX = /\b(cart|my cart|basket|items in cart)\b/i;
-const WISHLIST_REGEX = /\b(wishlist|saved|favorites|favourites)\b/i;
-const RETURN_REGEX = /\b(return|refund|exchange|cancel|cancellation|replacement)\b/i;
-const SHIPPING_REGEX = /\b(shipping|delivery|ship|deliver|dispatch|charges)\b/i;
-const SUPPORT_REGEX = /\b(contact|support|help|email|phone|call|customer care)\b/i;
+const ORDER_TRACK_REGEX = /\b(track|track my order|where is my order|order status|order id|tracking)\b/i;
+const CART_REGEX = /\b(cart|view cart|my cart|basket|items in cart)\b/i;
+const WISHLIST_REGEX = /\b(wishlist|view wishlist|saved|favorites|favourites)\b/i;
+const RETURN_REGEX = /\b(return|return policy|refund|exchange|cancel|cancellation|replacement)\b/i;
+const SHIPPING_REGEX = /\b(shipping|shipping policy|shipping details|delivery|ship|deliver|dispatch|charges)\b/i;
+const SUPPORT_REGEX = /\b(contact|contact support|support|help|email|phone|call|customer care)\b/i;
 
 export default function ChatDrawer() {
   const [isOpen, setIsOpen] = useState(false);

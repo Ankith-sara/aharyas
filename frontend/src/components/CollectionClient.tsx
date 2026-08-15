@@ -67,7 +67,7 @@ interface CollectionClientProps {
 }
 
 export default function CollectionClient({ categorySlug, companyParam }: CollectionClientProps) {
-  const { products = [], currency, getProductUrl, search, setSearch } = useProducts();
+  const { products = [], currency, formatPrice, getProductUrl, search, setSearch } = useProducts();
 
   const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
   const [sortOption, setSortOption] = useState('relevant');
@@ -646,7 +646,7 @@ export default function CollectionClient({ categorySlug, companyParam }: Collect
                             )}
                           </div>
                           <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                            <span className="text-base sm:text-lg font-semibold">{currency}{product.price}</span>
+                            <span className="text-base sm:text-lg font-semibold">{formatPrice ? formatPrice(product.price) : `${currency}${product.price}`}</span>
                             <Link href={getProductUrl(product)} className="text-xs font-medium uppercase tracking-wider text-black border-b border-black">
                               View Product
                             </Link>

@@ -1,25 +1,67 @@
 import redis from '../config/redis.js';
 import logger from '../config/logger.js';
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// Helpers
 const envInt = (key, fallback) => {
     const v = process.env[key];
     return v !== undefined ? parseInt(v, 10) : fallback;
 };
 
 const BASE_BLOCK_SEC = envInt('RATE_LIMIT_BASE_BLOCK_SEC', 60);
-const MAX_BLOCK_SEC  = envInt('RATE_LIMIT_MAX_BLOCK_SEC', 1800);
+const MAX_BLOCK_SEC = envInt('RATE_LIMIT_MAX_BLOCK_SEC', 1800);
 
-// ── Core factory ─────────────────────────────────────────────────────────────
+// Bounded in-memory fallback store for rate limiting when Redis is unavailable
+const memoryFallbackStore = new Map();
+const MAX_FALLBACK_ENTRIES = 5000;
+
+const cleanupMemoryStore = () => {
+    const now = Date.now();
+    for (const [k, v] of memoryFallbackStore.entries()) {
+        if (v.resetAt <= now && (!v.blockedUntil || v.blockedUntil <= now)) {
+            memoryFallbackStore.delete(k);
+        }
+    }
+    if (memoryFallbackStore.size > MAX_FALLBACK_ENTRIES) {
+        const keysToDelete = Array.from(memoryFallbackStore.keys()).slice(0, 1000);
+        for (const k of keysToDelete) memoryFallbackStore.delete(k);
+    }
+};
+
+setInterval(cleanupMemoryStore, 60000).unref();
+
+const checkInMemoryFallback = ({ key, limit, windowSeconds, res }) => {
+    const now = Date.now();
+    let entry = memoryFallbackStore.get(key);
+    if (!entry || entry.resetAt <= now) {
+        entry = { count: 0, resetAt: now + windowSeconds * 1000, blockedUntil: 0 };
+    }
+    if (entry.blockedUntil && entry.blockedUntil > now) {
+        const retryAfter = Math.ceil((entry.blockedUntil - now) / 1000);
+        res.setHeader('Retry-After', retryAfter);
+        return false;
+    }
+    entry.count += 1;
+    if (entry.count > limit) {
+        entry.blockedUntil = now + windowSeconds * 1000;
+        memoryFallbackStore.set(key, entry);
+        const retryAfter = windowSeconds;
+        res.setHeader('Retry-After', retryAfter);
+        return false;
+    }
+    memoryFallbackStore.set(key, entry);
+    return true;
+};
+
+// Core factory 
 /**
- * Creates a Redis-backed rate-limiter middleware.
+ * Creates a Redis-backed rate-limiter middleware with bounded in-memory fallback.
  *
  * @param {Object}  opts
- * @param {string}  opts.name          – Unique key prefix (e.g. 'login')
+ * @param {string}  opts.name         – Unique key prefix (e.g. 'login')
  * @param {number}  opts.limit         – Max requests allowed in the window
- * @param {number}  opts.windowSeconds – Sliding-window size in seconds
+ * @param {number}  opts.windowSeconds  – Sliding-window size in seconds
  * @param {boolean} [opts.trackAccount=false] – Also limit per-account (email)
- *        with exponential back-off on repeated blocks
+ *         with exponential back-off on repeated blocks
  */
 const createRateLimiter = ({ name, limit, windowSeconds, trackAccount = false }) => {
     return async (req, res, next) => {
@@ -107,8 +149,15 @@ const createRateLimiter = ({ name, limit, windowSeconds, trackAccount = false })
 
             next();
         } catch (err) {
-            // Redis down → fail open so the app keeps working
-            logger.error('[RateLimit] Redis error – failing open', err);
+            logger.error('[RateLimit] Redis error – falling back to bounded in-memory limiter', err);
+            const fallbackKey = keys[0];
+            const allowed = checkInMemoryFallback({ key: fallbackKey, limit, windowSeconds, res });
+            if (!allowed) {
+                return res.status(429).json({
+                    success: false,
+                    message: 'Too many requests. Please try again later.',
+                });
+            }
             next();
         }
     };

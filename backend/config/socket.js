@@ -1,8 +1,10 @@
+import jwt from 'jsonwebtoken';
+import userModel from '../features/user/UserModel.js';
 import logger from '../config/logger.js';
 import {
-    trackUserConnected, trackUserDisconnected, trackProductViewed, trackCartAdded, trackCheckoutStarted,
-    trackOrderPlaced, trackSearchPerformed, getDashboardCounters,
-} from '../services/AnalyticsService.js';
+    trackUserConnected, trackUserDisconnected, trackProductViewed, 
+    trackCartAdded, trackSearchPerformed, getDashboardCounters,
+} from '../features/analytics/AnalyticsService.js';
 
 // Module-level reference so server-side code can emit without circular imports
 let _adminNs = null;
@@ -43,8 +45,34 @@ const initAnalyticsSocket = (io) => {
     const adminNs = io.of('/admin-analytics');
     _adminNs = adminNs;
 
+    // Authenticate admin socket connection
+    adminNs.use(async (socket, next) => {
+        try {
+            const token = socket.handshake.auth?.token ||
+                (socket.handshake.headers?.authorization?.startsWith('Bearer ')
+                    ? socket.handshake.headers.authorization.split(' ')[1]
+                    : socket.handshake.headers?.authorization);
+
+            if (!token) {
+                return next(new Error('Authentication required for admin analytics'));
+            }
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            const user = await userModel.findById(decoded.id).select('role');
+            if (!user || user.role !== 'admin') {
+                return next(new Error('Access denied. Admin authorization required.'));
+            }
+
+            socket.user = user;
+            next();
+        } catch (err) {
+            logger.warn(`[Socket Auth] Admin connection rejected: ${err.message}`);
+            return next(new Error('Unauthorized socket connection'));
+        }
+    });
+
     adminNs.on('connection', async (socket) => {
-        logger.info(`[Socket] Admin connected: ${socket.id}`);
+        logger.info(`[Socket] Admin connected: ${socket.id} (user: ${socket.user?._id})`);
 
         // Send initial dashboard state
         try {
@@ -65,43 +93,37 @@ const initAnalyticsSocket = (io) => {
         adminNs.emit('user:connected', { onlineUsers: onlineCount });
         logger.info(`[Socket] User connected: ${socket.id} (online: ${onlineCount})`);
 
-        // Track product views
+        // Track product views 
         socket.on('product:view', async (data) => {
-            const productName = data?.productName || 'Unknown Product';
+            const rawName = typeof data?.productName === 'string' ? data.productName : '';
+            const productName = rawName.trim().slice(0, 100) || 'Unknown Product';
             const count = await trackProductViewed(productName);
             adminNs.emit('product:viewed', { productName, todayProductViews: count });
         });
 
         // Track cart additions
         socket.on('cart:add', async (data) => {
-            const productName = data?.productName || 'Unknown Product';
+            const rawName = typeof data?.productName === 'string' ? data.productName : '';
+            const productName = rawName.trim().slice(0, 100) || 'Unknown Product';
             const count = await trackCartAdded(productName);
             adminNs.emit('cart:added', { productName, todayCartAdds: count });
         });
 
-        // Track checkout start
-        socket.on('checkout:start', async () => {
-            const count = await trackCheckoutStarted();
-            adminNs.emit('checkout:started', { todayCheckouts: count });
-        });
-
-        // Track order placed
-        socket.on('order:place', async (data) => {
-            const orderId = data?.orderId || 'Unknown';
-            const count = await trackOrderPlaced(orderId);
-            adminNs.emit('order:placed', { orderId, todayOrders: count });
-        });
-
-        // Track search
+        // Track search 
         socket.on('search:perform', async (data) => {
-            const query = data?.query || '';
-            const count = await trackSearchPerformed(query);
-            adminNs.emit('search:performed', { query, todaySearches: count });
+            const rawQuery = typeof data?.query === 'string' ? data.query : '';
+            const query = rawQuery.trim().slice(0, 100);
+            if (query) {
+                const count = await trackSearchPerformed(query);
+                adminNs.emit('search:performed', { query, todaySearches: count });
+            }
         });
 
-        // Existing order tracking
+        // Existing order tracking room join
         socket.on('track-order', (orderId) => {
-            socket.join(`order_${orderId}`);
+            if (typeof orderId === 'string' && /^[0-9a-fA-F]{24}$/.test(orderId)) {
+                socket.join(`order_${orderId}`);
+            }
         });
 
         // Disconnect

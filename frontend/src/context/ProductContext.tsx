@@ -71,6 +71,23 @@ const getProductSearchScore = (p: Product, word: string) => {
   return fuzzyMatch(p.name, word) ? 2 : fuzzyMatch(p.subCategory, word) || fuzzyMatch(p.category, word) ? 1 : 0;
 };
 
+export const CURRENCY_RATES: Record<string, { symbol: string; rate: number; decimals: number; label: string }> = {
+  "₹": { symbol: "₹", rate: 1.0, decimals: 0, label: "INR (₹) — Indian Rupee" },
+  "$": { symbol: "$", rate: 0.012, decimals: 2, label: "USD ($) — US Dollar" },
+  "€": { symbol: "€", rate: 0.011, decimals: 2, label: "EUR (€) — Euro" },
+  "£": { symbol: "£", rate: 0.0095, decimals: 2, label: "GBP (£) — British Pound" },
+};
+
+export const formatPriceValue = (priceInINR: number, currentCurrency: string = "₹"): string => {
+  if (priceInINR === undefined || priceInINR === null || isNaN(priceInINR)) return "";
+  const info = CURRENCY_RATES[currentCurrency] || CURRENCY_RATES["₹"];
+  const converted = priceInINR * info.rate;
+  if (info.decimals === 0) {
+    return `${info.symbol}${Math.round(converted).toLocaleString('en-IN')}`;
+  }
+  return `${info.symbol}${converted.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+};
+
 interface ProductContextType {
   products: Product[];
   isLoading: boolean;
@@ -88,6 +105,8 @@ interface ProductContextType {
   getRecentlyViewed: (allProducts?: Product[]) => any[];
   clearRecentlyViewed: () => void;
   currency: string;
+  setCurrency: (symbol: string) => void;
+  formatPrice: (amount: number) => string;
   backendUrl: string;
   getProductUrl: (p: any) => string;
   createSlug: (n: string) => string;
@@ -110,6 +129,8 @@ export const ProductContext = createContext<ProductContextType>({
   getRecentlyViewed: () => [],
   clearRecentlyViewed: () => {},
   currency: "₹",
+  setCurrency: () => {},
+  formatPrice: (amt: number) => formatPriceValue(amt, "₹"),
   backendUrl: "",
   getProductUrl: () => "/shop/collection",
   createSlug: () => "",
@@ -120,6 +141,7 @@ export const ProductContextProvider: React.FC<{ children: React.ReactNode }> = (
   const [search, setSearch] = useState<string>("");
   const [showSearch, setShowSearch] = useState<boolean>(false);
   const [selectedSubCategory, setSelectedSubCategoryState] = useState<string>("");
+  const [currency, setCurrencyState] = useState<string>("₹");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const isMounted = useRef(true);
 
@@ -128,6 +150,16 @@ export const ProductContextProvider: React.FC<{ children: React.ReactNode }> = (
     return () => {
       isMounted.current = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const storedCurrency = safeRead<string>("currencySymbol", "₹");
+    if (storedCurrency) setCurrencyState(storedCurrency);
+  }, []);
+
+  const setCurrency = useCallback((symbol: string) => {
+    setCurrencyState(symbol);
+    safeWrite("currencySymbol", symbol);
   }, []);
 
   const setSelectedSubCategory = useCallback((cat: string) => {
@@ -241,6 +273,8 @@ export const ProductContextProvider: React.FC<{ children: React.ReactNode }> = (
     getProductsData(true);
   }, [getProductsData]);
 
+  const formatPrice = useCallback((amount: number) => formatPriceValue(amount, currency), [currency]);
+
   const value = useMemo(
     () => ({
       products,
@@ -258,7 +292,9 @@ export const ProductContextProvider: React.FC<{ children: React.ReactNode }> = (
       addProductToRecentlyViewed,
       getRecentlyViewed,
       clearRecentlyViewed,
-      currency: "₹",
+      currency,
+      setCurrency,
+      formatPrice,
       backendUrl: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000",
       getProductUrl,
       createSlug,
@@ -277,6 +313,9 @@ export const ProductContextProvider: React.FC<{ children: React.ReactNode }> = (
       addProductToRecentlyViewed,
       getRecentlyViewed,
       clearRecentlyViewed,
+      currency,
+      setCurrency,
+      formatPrice,
     ]
   );
 

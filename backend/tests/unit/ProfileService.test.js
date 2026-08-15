@@ -29,7 +29,7 @@ const mockFs = {
     }
 };
 
-jest.unstable_mockModule('../../models/UserModel.js', () => ({ default: mockUserModel }));
+jest.unstable_mockModule('../../features/user/UserModel.js', () => ({ default: mockUserModel }));
 jest.unstable_mockModule('bcryptjs', () => ({ default: mockBcrypt }));
 jest.unstable_mockModule('../../config/imagekit.js', () => ({ default: mockImagekit }));
 jest.unstable_mockModule('fs', () => ({ default: mockFs }));
@@ -37,7 +37,7 @@ jest.unstable_mockModule('fs', () => ({ default: mockFs }));
 const {
     getProfile, getProfileById, updateProfile,
     upsertAddress, removeAddress, changePassword,
-} = await import('../../services/ProfileService.js');
+} = await import('../../features/user/ProfileService.js');
 
 beforeEach(() => jest.clearAllMocks());
 

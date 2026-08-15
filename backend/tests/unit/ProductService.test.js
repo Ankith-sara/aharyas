@@ -7,11 +7,11 @@ const mockProductModel = {
     countDocuments: jest.fn(),
 };
 
-jest.unstable_mockModule('../../models/ProductModel.js', () => ({
+jest.unstable_mockModule('../../features/product/ProductModel.js', () => ({
     default: mockProductModel,
 }));
 
-jest.unstable_mockModule('../../services/CacheService.js', () => ({
+jest.unstable_mockModule('../../features/product/CacheService.js', () => ({
     cacheGet: jest.fn((key, fetcher) => fetcher()),
     invalidateOnProductChange: jest.fn().mockResolvedValue(true),
     invalidateProductCaches: jest.fn().mockResolvedValue(true),
@@ -25,12 +25,11 @@ jest.unstable_mockModule('../../services/CacheService.js', () => ({
     }
 }));
 
-const { searchProducts } = await import('../../services/ProductService.js');
+const { searchProducts } = await import('../../features/product/ProductService.js');
 
 beforeEach(() => jest.clearAllMocks());
 
-// ─── Helper — builds the chained mock find returns ────────────────────────────
-
+// Helper — builds the chained mock find returns 
 const buildFindChain = (result) =>
     mockProductModel.find.mockReturnValue({
         sort: jest.fn().mockReturnValue({

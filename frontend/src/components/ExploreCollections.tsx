@@ -111,7 +111,7 @@ export default function ExploreCollections() {
 
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-            {Array.from({ length: 8 }, (_, i) => (
+            {Array.from({ length: 10 }, (_, i) => (
               <SkeletonCard key={i} />
             ))}
           </div>

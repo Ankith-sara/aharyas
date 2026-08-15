@@ -6,14 +6,14 @@ const mockUserModel = {
     findByIdAndUpdate: jest.fn(),
 };
 
-jest.unstable_mockModule('../../models/UserModel.js', () => ({
+jest.unstable_mockModule('../../features/user/UserModel.js', () => ({
     default: mockUserModel,
 }));
 
 const {
     addToWishlist, removeFromWishlist, toggleWishlistItem,
     getUserWishlist, getWishlistWithDetails,
-} = await import('../../services/WishlistService.js');
+} = await import('../../features/wishlist/WishlistService.js');
 
 beforeEach(() => jest.clearAllMocks());
 

@@ -131,7 +131,7 @@ interface ProductClientProps {
 
 export default function ProductClient({ slug }: ProductClientProps) {
   const router = useRouter();
-  const { products, currency, addProductToRecentlyViewed } = useProducts();
+  const { products, currency, formatPrice, addProductToRecentlyViewed } = useProducts();
   const { addToCart, toggleWishlist, isInWishlist } = useCart();
   const { token } = useAuth();
   
@@ -468,14 +468,14 @@ export default function ProductClient({ slug }: ProductClientProps) {
                   {hasDiscount ? (
                     <div>
                       <div className="flex items-baseline gap-3 flex-wrap">
-                        <span className="text-2xl sm:text-3xl font-medium text-black">{currency}{discountedPrice.toLocaleString('en-IN')}</span>
-                        <span className="text-base text-gray-400 line-through font-light">{currency}{originalPrice.toLocaleString('en-IN')}</span>
+                        <span className="text-2xl sm:text-3xl font-medium text-black">{formatPrice ? formatPrice(discountedPrice) : `${currency}${discountedPrice}`}</span>
+                        <span className="text-base text-gray-400 line-through font-light">{formatPrice ? formatPrice(originalPrice) : `${currency}${originalPrice}`}</span>
                         <span className="bg-red-500 text-white text-[10px] font-bold tracking-[0.15em] uppercase px-2 py-0.5">{productData.discount}% OFF</span>
                       </div>
-                      <p className="text-xs text-green-700 font-medium mt-1">You save {currency}{savedAmount.toLocaleString('en-IN')}</p>
+                      <p className="text-xs text-green-700 font-medium mt-1">You save {formatPrice ? formatPrice(savedAmount) : `${currency}${savedAmount}`}</p>
                     </div>
                   ) : (
-                    <span className="text-2xl sm:text-3xl font-medium text-black">{currency}{originalPrice.toLocaleString('en-IN')}</span>
+                    <span className="text-2xl sm:text-3xl font-medium text-black">{formatPrice ? formatPrice(originalPrice) : `${currency}${originalPrice}`}</span>
                   )}
                   <p className="text-[10px] text-gray-400 font-light tracking-[0.12em] uppercase mt-1.5">Prices include GST</p>
                 </div>

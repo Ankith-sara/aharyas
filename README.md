@@ -2,377 +2,203 @@
 
 Aharyas is a MERN e-commerce platform for handcrafted Indian products. The repo contains three apps:
 
-- `frontend`: customer storefront built with React, Vite, and Tailwind CSS
-- `admin`: admin dashboard for product, order, and seller operations
-- `backend`: Express API with MongoDB, JWT auth, payments, email, uploads, and order tracking
+- `frontend`: High-performance customer storefront built with React 18, Vite, React Router 7, and Vanilla/Tailwind CSS.
+- `admin`: Operational administrative & seller dashboard for catalog, order, verification, and real-time analytics management.
+- `backend`: Production-grade Node.js/Express API featuring MongoDB persistence, Redis-backed rate limiting with bounded in-memory fallbacks, JWT auth, Razorpay payments, salted delivery OTPs, Socket.IO admin streams, and automated abandoned cart worker automation.
 
-Live site: https://aharyas.com
+Live site: [https://aharyas.com](https://aharyas.com)
 
-## Features
+---
 
-### Customer Storefront
-- Home, collection, category, company, product detail, cart, wishlist, checkout, order tracking, profile, support, and policy pages
-- Search, filters, sorting, grid/list collection views, recently viewed products, coupons, and responsive UI
-- Guest-aware wishlist and checkout flows, with protected account/order features
-- Google login, OTP verification, password reset, newsletter subscription, and profile/address management
-- Virtual try-on and chatbot support integrations
+## 🔒 Production Security & Hardening Architecture
 
-### Admin Dashboard
-- Admin authentication
-- Product add/edit/list workflows with image uploads
-- Order management and order detail views
-- Admin panel and seller/business analytics surfaces
+### P0 Security Enforcements
+1. **IDOR Prevention**: Strict user ownership validation on all order lookup, status verification, and cart mutation endpoints (`OrderController.js`, `CartController.js`).
+2. **Hardened Delivery OTP**:
+   - Replaced plaintext OTP storage with salted HMAC SHA-256 hashes (`deliveryOtpHash`).
+   - 15-minute sliding expiration (`deliveryOtpExpiresAt`).
+   - Brute-force protection: 5-failed-attempt threshold triggers a 15-minute account lockout (`deliveryOtpLockoutUntil`).
+   - Cryptographic timing-safe hash comparison (`crypto.timingSafeEqual`).
+3. **Socket.IO Admin Analytics Security**:
+   - JWT-authenticated `/admin-analytics` namespace requiring active admin token verification.
+   - Client-side event sanitization preventing malicious telemetry injections.
+   - Authoritative business events emitted exclusively by server-side domain services.
+4. **Resilient Rate Limiting**:
+   - Redis-backed sliding window rate limiters across auth, OTP, register, and user routes.
+   - **Fail-Closed Fallback Store**: Bounded in-memory map fallback (capped at 5,000 active entries) ensuring security routes remain protected even during Redis outages.
+5. **XSS Payload Mitigation**:
+   - HTML sanitizer (`utils/sanitizer.js`) stripping dangerous `<script>`, `<iframe>`, and `on*` event handlers from rich text product descriptions.
+   - Strict string sanitization on user inputs and catalog metadata.
+6. **Checkout Calculation Integrity**:
+   - All line prices, sub-totals, discounts, delivery fees, and order totals are calculated authoritatively on the backend server.
+   - Client-side `localStorage` data is treated strictly as display state.
 
-### Backend API
-- Express REST API under `/api/v1`
-- MongoDB models for users, products, orders, carts, and wishlists
-- JWT access/refresh auth, admin auth, optional auth, OTP email flows, and profile management
-- Cloudinary image upload support
-- Razorpay order/payment verification
-- Nodemailer transactional emails for OTP, welcome, newsletter, order, shipping, delivery OTP, and delivered events
-- Socket.IO order tracking rooms
-- Security middleware: CORS allowlist, Helmet, rate limiting, Mongo sanitize, request logging
+---
 
-## Tech Stack
+## 🛒 Persistent Cart & Abandoned Cart Email Automation
 
-| Area | Tools |
-| --- | --- |
-| Frontend | React 18, Vite 6, React Router 7, Tailwind CSS, lucide-react |
-| Admin | React 18, Vite 6, Tailwind CSS, Chart.js |
-| Backend | Node.js, Express, Mongoose, Socket.IO |
-| Auth | JWT, Google OAuth, OTP email |
-| Payments | Razorpay |
-| Media | Cloudinary, Multer |
-| Email | Nodemailer |
-| Tests | Jest, Supertest, React-focused frontend tests |
+### Server-Side Persistent Cart (`CartModel.js`)
+- MongoDB schema storing user cart state with activity timestamps (`lastActivityAt`), status tracking (`ACTIVE`, `ABANDONED`, `CONVERTED`, `EXPIRED`), and item arrays.
+- Automatic guest-to-authenticated cart merging (`POST /api/v1/cart/merge`) upon login with quantity caps (max 10 items per SKU).
+- Bidirectional backwards-compatibility sync with `UserModel.cartData`.
 
-## Repository Structure
+### Automated Abandoned Cart Worker (`abandonedCartWorker.js`)
+- Independent background cron/interval job executing every 15 minutes.
+- Multi-stage notification pipeline:
+  - **Stage 1 (24 Hours / 1 Day)**: "Your Aharyas cart is waiting"
+  - **Stage 2 (72 Hours / 3 Days)**: "Still thinking about your selection?"
+  - **Stage 3 (7 Days / 168 Hours)**: "Your Aharyas selection is waiting" (Final reminder)
+- **Idempotency & Race Condition Defense**: Atomic `findOneAndUpdate` database claims guarantee that multiple API worker nodes never double-send notifications.
+- **Conversion Cancellation**: Order placement automatically transitions the user's cart to `CONVERTED`, immediately canceling any pending abandoned cart email schedules.
+
+---
+
+## 📁 Repository Structure
 
 ```text
-aharya-app/
-  admin/                 Admin React app
-    src/
-      components/
-      context/
-      pages/
-  backend/               Express API
-    config/              DB, Cloudinary, mailer, logger, email templates
-    controllers/         API controller logic
-    middlewares/         Auth, validation, upload, mail helpers
-    models/              Mongoose schemas
-    routes/              Express routers
-    services/            Shared business/auth/order services
-    tests/               Backend Jest/Supertest tests
-    server.js            API entrypoint
-  frontend/              Customer React app
-    src/
-      assets/
-      components/
-      context/
-      data/
-      pages/
-      tests/
-  README.md
+aharyas-app/
+├── admin/                 Admin & Seller React Dashboard
+│   ├── src/
+│   │   ├── components/    UI components & rich text editor
+│   │   ├── context/       Auth & Admin state contexts
+│   │   ├── pages/         Order, product, and analytics views
+│   └── index.html         Admin entrypoint (noindex, nofollow)
+├── backend/               Express REST API & Worker Engine
+│   ├── config/            MongoDB, Redis, Mailer, Logger, Email Templates, Socket
+│   ├── controllers/       API Request handlers (Order, Cart, Product, User, etc.)
+│   ├── jobs/              Background workers (abandonedCartWorker.js)
+│   ├── middlewares/       Auth, RateLimiter (with fallback), Sanitize, Upload
+│   ├── models/            Mongoose Schemas (CartModel, OrderModel, ProductModel, UserModel)
+│   ├── routes/            Express Route definitions & validation rules
+│   ├── services/          Business logic (CartService, AbandonedCartService, OrderService)
+│   ├── tests/             Jest & Supertest unit/integration test suites (22 suites, 250 tests)
+│   └── server.js          Server entrypoint & socket launcher
+├── frontend/              Customer Storefront React App
+│   ├── public/            Static assets & robots.txt
+│   └── src/               Components, Contexts, Pages
+└── README.md
 ```
 
-## Prerequisites
+---
 
-- Node.js 18 or newer
-- npm
-- MongoDB connection string
-- Cloudinary account
-- Email account/app password for SMTP
-- Razorpay keys for checkout
-- Google OAuth client ID if Google login is enabled
-- Groq API key if the chatbot proxy is enabled
+## 🛠️ Prerequisites & Setup
 
-## Environment Variables
+### Requirements
+- **Node.js**: v18.x or higher
+- **MongoDB**: Connection string (Atlas or local replica set)
+- **Redis**: Connection string / URL for rate limiting & session caches
+- **SMTP Provider**: Host, port, user, and app password for Nodemailer
 
-Create `.env` files inside each app directory. Do not commit real `.env` files.
+### Environment Variables
 
-### `backend/.env`
-
+#### `backend/.env`
 ```env
 NODE_ENV=development
 PORT=4000
-
-MONGODB_URI=
-
-JWT_SECRET=
-JWT_REFRESH_SECRET=
-
-CLOUDINARY_NAME=
-CLOUDINARY_API_KEY=
-CLOUDINARY_SECRET_KEY=
-
-EMAIL_USER=
-EMAIL_PASS=
-
+MONGODB_URI=mongodb+srv://...
+REDIS_URL=redis://...
+JWT_SECRET=your_super_secret_jwt_key
+JWT_REFRESH_SECRET=your_refresh_secret
+IMAGEKIT_PUBLIC_KEY=...
+IMAGEKIT_PRIVATE_KEY=...
+IMAGEKIT_URL_ENDPOINT=...
+RAZORPAY_KEY_ID=...
+RAZORPAY_SECRET_KEY=...
+EMAIL_USER=support@aharyas.com
+EMAIL_PASS=...
 FRONTEND_URL=http://localhost:5173
-WHATSAPP_GROUP_LINK=
-
-RAZORPAY_KEY_ID=
-RAZORPAY_SECRET_KEY=
-
-GOOGLE_CLIENT_ID=
-GROQ_API_KEY=
-HEALTH_SECRET=
+ABANDONED_CART_CHECK_INTERVAL_MS=900000
+HEALTH_SECRET=...
 ```
 
-### `frontend/.env`
-
+#### `frontend/.env`
 ```env
 VITE_BACKEND_URL=http://localhost:4000
-VITE_GOOGLE_CLIENT_ID=
-VITE_RAZORPAY_KEY_ID=
-VITE_REMOVE_BG_API_KEY=
+VITE_GOOGLE_CLIENT_ID=...
+VITE_RAZORPAY_KEY_ID=...
 ```
 
-### `admin/.env`
-
+#### `admin/.env`
 ```env
 VITE_BACKEND_URL=http://localhost:4000
-VITE_GOOGLE_CLIENT_ID=
+VITE_GOOGLE_CLIENT_ID=...
 ```
 
-## Local Development
+---
 
-Install dependencies for each app:
-
-```bash
-cd backend
-npm install
-
-cd ../frontend
-npm install
-
-cd ../admin
-npm install
-```
-
-Run the backend API:
+## 🚀 Running Locally
 
 ```bash
+# 1. Install dependencies
+cd backend && npm install
+cd ../frontend && npm install
+cd ../admin && npm install
+
+# 2. Start Backend (API + Socket + Background Worker)
 cd backend
 npm run server
-```
 
-Run the storefront:
-
-```bash
+# 3. Start Frontend Storefront
 cd frontend
 npm run dev
-```
 
-Run the admin dashboard:
-
-```bash
+# 4. Start Admin Portal
 cd admin
 npm run dev
 ```
 
-Default local ports:
+---
 
-- Backend API: `http://localhost:4000`
-- Frontend Vite: usually `http://localhost:5173`
-- Admin Vite: usually `http://localhost:5174` if the frontend is already using `5173`
+## 🧪 Automated Testing
 
-## Scripts
-
-### Backend
-
-```bash
-npm start          # Run server.js with node
-npm run server     # Run server.js with nodemon
-npm test           # Run backend tests
-npm run test:watch # Run backend tests in watch mode
-npm run test:coverage
-```
-
-### Frontend
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-npm test
-npm run test:coverage
-```
-
-### Admin
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-```
-
-## API Overview
-
-Base URL:
-
-```text
-/api/v1
-```
-
-### User and Auth: `/api/v1/user`
-
-- `POST /send-otp`
-- `POST /verify-otp`
-- `POST /login`
-- `POST /refresh-token`
-- `POST /google-auth`
-- `POST /forgot-password-otp`
-- `POST /reset-password`
-- `POST /admin-login`
-- `POST /send-admin-otp`
-- `POST /verify-admin-otp`
-- `POST /admin-google-auth`
-- `GET /profile`
-- `GET /profile/:id`
-- `PUT /profile/:id`
-- `PUT /address/:id`
-- `DELETE /address/:id`
-- `PUT /change-password/:id`
-- `POST /newsletter/subscribe`
-
-### Products: `/api/v1/product`
-
-- `GET /all` public product list
-- `POST /single` public single product lookup
-- `GET /companies`
-- `GET /company/:company`
-- `POST /add` admin only
-- `PUT /edit/:id` admin only
-- `GET /list` admin only
-- `DELETE /remove/:id` admin only
-- `GET /analytics` admin only
-
-### Cart: `/api/v1/cart`
-
-- `POST /get`
-- `POST /add`
-- `POST /update`
-- `POST /remove`
-- `POST /clear`
-
-### Wishlist: `/api/v1/wishlist`
-
-- `POST /add`
-- `POST /remove`
-- `POST /toggle`
-- `POST /get`
-- `POST /details`
-
-### Orders: `/api/v1/order`
-
-- `POST /place`
-- `POST /razorpay`
-- `POST /verifyRazorpay`
-- `POST /verifyCOD`
-- `POST /userorders`
-- `GET /track/:orderId`
-- `GET /status/:orderId`
-- `GET /list` admin only
-- `POST /status` admin only
-- `POST /updatePayment` admin only
-- `POST /verifyDelivery`
-
-### Chat: `/api/v1/chat`
-
-- `POST /chat`
-
-### Health
-
-- `GET /health`
-- `GET /` returns a simple API running message
-
-## Frontend Routing
-
-Important storefront routes:
-
-- `/`
-- `/shop/collection`
-- `/shop/:subcategory`
-- `/shop/company/:company`
-- `/product/:productId`
-- `/cart`
-- `/wishlist`
-- `/place-order`
-- `/orders`
-- `/trackorder/:orderId`
-- `/profile/:id`
-- `/login`
-- `/assistant`
-- `/try-on`
-- `/about`, `/contact`, `/support`, `/faqs`
-- policy pages: `/refundpolicy`, `/shippingpolicy`, `/termsconditions`, `/privacypolicy`
-
-## Authentication Notes
-
-- Customer-only routes use `authUser` on the backend.
-- Admin-only routes use `adminAuth`.
-- Some order and wishlist routes use `optionalAuth` to support guest-friendly flows.
-- Access tokens are JWT-based. Refresh-token support is exposed via `/api/v1/user/refresh-token`.
-- OTP flows are sent with Nodemailer.
-
-## Payments and Orders
-
-- COD orders use `/api/v1/order/place` and COD verification flows.
-- Razorpay orders use `/api/v1/order/razorpay` followed by `/api/v1/order/verifyRazorpay`.
-- Order status is available through `/api/v1/order/track/:orderId` and `/api/v1/order/status/:orderId`.
-- Socket.IO lets clients join `order_<orderId>` rooms for live tracking updates.
-
-## Testing and Verification
-
-Run backend tests:
+Execute the complete backend test suite:
 
 ```bash
 cd backend
 npm test
 ```
 
-Run frontend tests:
-
-```bash
-cd frontend
-npm test
+Expected result:
+```text
+Test Suites: 22 passed, 22 total
+Tests:       250 passed, 250 total
+Snapshots:   0 total
+Time:        12.593 s
 ```
 
-Build all deployable apps:
+---
 
-```bash
-cd frontend
-npm run build
+## 🌐 API Endpoint Reference (`/api/v1`)
 
-cd ../admin
-npm run build
-```
+### Authentication & Users (`/api/v1/user`)
+- `POST /send-otp` — Request login/register OTP
+- `POST /verify-otp` — Verify OTP & authenticate
+- `POST /login` — Password authentication
+- `POST /refresh-token` — Issue new access token
+- `POST /forgot-password-otp` — Request password reset OTP
+- `POST /reset-password` — Complete password reset
 
-## Deployment Notes
+### Cart Management (`/api/v1/cart`)
+- `POST /get` — Fetch user persistent cart
+- `POST /add` — Add item to cart
+- `POST /update` — Update item quantity / size
+- `POST /remove` — Remove item from cart
+- `POST /clear` — Empty user cart
+- `POST /merge` — Merge guest cart into user account upon login
 
-> [!WARNING]
-> **Secret Rotation Security Policy**: 
-> If any secret or API key (e.g., Stripe, Razorpay, JWT secrets, database connection string, email/app passwords) was previously hardcoded in any commit in the git history, the secret must be rotated/revoked immediately. Simply removing it from the current codebase or pushing a `.env` file does not delete the secret from your historical Git commits.
+### Orders & Verification (`/api/v1/order`)
+- `POST /place` — Place COD order (triggers cart conversion)
+- `POST /razorpay` — Initiate Razorpay payment session
+- `POST /verifyRazorpay` — Verify signature & finalize online order
+- `POST /verifyCOD` — Verify COD order ownership
+- `POST /verifyDelivery` — Verify delivery OTP (5-fail lockout protected)
 
-- Set production environment variables in the hosting provider.
-- Set `NODE_ENV=production` for the backend.
-- Keep the backend CORS allowlist in `backend/server.js` aligned with production domains.
-- Use `npm start` for the backend production process.
-- Serve `frontend/dist` for the storefront and `admin/dist` for the admin dashboard.
-- Keep secrets out of Git and rotate keys if any `.env` file has been exposed.
+### Admin Analytics & Sitemaps
+- `GET /admin-analytics` — Socket.IO namespace (JWT auth enforced)
+- `GET /sitemap.xml` — Public dynamic sitemap XML
 
+---
 
-## Troubleshooting
-
-- If the frontend cannot reach the API, check `VITE_BACKEND_URL` and backend CORS origins.
-- If images fail to upload, check Cloudinary keys and Multer upload field names.
-- If OTP/order emails fail, check `EMAIL_USER`, `EMAIL_PASS`, and provider app-password settings.
-- If Razorpay verification fails, check that backend `RAZORPAY_SECRET_KEY` and frontend `VITE_RAZORPAY_KEY_ID` belong to the same Razorpay mode.
-- If Google login fails, check `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID`.
-
-## License
+## 📜 License & Compliance
 
 Proprietary. All rights reserved. This codebase is not open for public use, redistribution, or modification without explicit written permission from Aharyas.

@@ -1,5 +1,5 @@
 import transporter from '../config/mailer.js';
-import productModel from '../models/ProductModel.js';
+import productModel from '../features/product/ProductModel.js';
 import {
   B, emailHead, emailClose, brandHeader, brandFooter,
   sectionDivider, eyebrow, ctaButton, outlineCtaButton,
@@ -8,7 +8,7 @@ import {
   stepRow, statusBanner,
 } from '../config/emailTemplates.js';
 
-// ─── Core send helper ─────────────────────────────────────────────────────────
+// Core send helper
 const sendOrderMail = async (email, subject, html) => {
   if (!email || !subject) {
     console.error('Missing email or subject for order mail');

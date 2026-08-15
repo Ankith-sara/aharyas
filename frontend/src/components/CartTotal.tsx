@@ -16,7 +16,7 @@ interface CartTotalProps {
 }
 
 const CartTotal: React.FC<CartTotalProps> = ({ overrideShipping, hideShipping = false }) => {
-  const { currency } = useProducts();
+  const { currency, formatPrice } = useProducts();
   const { delivery_fee, getCartAmount, getAppliedCoupon, applyCoupon, clearCoupon } = useCart();
 
   const appliedCoupon = getAppliedCoupon ? getAppliedCoupon() : null;
@@ -271,7 +271,7 @@ const CartTotal: React.FC<CartTotalProps> = ({ overrideShipping, hideShipping = 
       <div className="space-y-2">
         <div className="flex justify-between items-center text-sm">
           <span className="text-gray-500 font-light">Subtotal</span>
-          <span className="text-gray-800">{currency}{subtotal.toLocaleString('en-IN')}</span>
+          <span className="text-gray-800">{formatPrice ? formatPrice(subtotal) : `${currency}${subtotal}`}</span>
         </div>
 
         {!hideShipping && (
@@ -279,7 +279,7 @@ const CartTotal: React.FC<CartTotalProps> = ({ overrideShipping, hideShipping = 
             <hr className="border-gray-100" />
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-500 font-light">Shipping Fee</span>
-              <span className="text-gray-800">{currency}{shippingFee.toLocaleString('en-IN')}</span>
+              <span className="text-gray-800">{formatPrice ? formatPrice(shippingFee) : `${currency}${shippingFee}`}</span>
             </div>
           </>
         )}
@@ -298,7 +298,7 @@ const CartTotal: React.FC<CartTotalProps> = ({ overrideShipping, hideShipping = 
             <hr className="border-gray-100" />
             <div className="flex justify-between items-center text-sm">
               <span className="text-green-600 font-light">Discount ({appliedCoupon.code})</span>
-              <span className="text-green-600">-{currency}{couponDiscount.toLocaleString('en-IN')}</span>
+              <span className="text-green-600">-{formatPrice ? formatPrice(couponDiscount) : `${currency}${couponDiscount}`}</span>
             </div>
           </>
         )}
@@ -309,12 +309,12 @@ const CartTotal: React.FC<CartTotalProps> = ({ overrideShipping, hideShipping = 
           <span className="text-sm font-semibold uppercase tracking-wide">
             {hideShipping ? 'Subtotal' : 'Total'}
           </span>
-          <span className="text-base font-semibold">{currency}{total.toLocaleString('en-IN')}</span>
+          <span className="text-base font-semibold">{formatPrice ? formatPrice(total) : `${currency}${total}`}</span>
         </div>
 
         {appliedCoupon && (
           <p className="text-[10px] text-green-600 font-medium text-right">
-            You&apos;re saving {currency}{couponDiscount.toLocaleString('en-IN')} on this order!
+            You&apos;re saving {formatPrice ? formatPrice(couponDiscount) : `${currency}${couponDiscount}`} on this order!
           </p>
         )}
       </div>

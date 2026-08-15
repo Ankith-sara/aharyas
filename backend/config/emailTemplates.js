@@ -1,4 +1,4 @@
-// ─── BRAND DESIGN TOKENS ────────────────────────────────────────────────────────────
+// BRAND DESIGN TOKENS
 export const B = {
   black:       '#0a0a0a',
   blackSoft:   '#111111',
@@ -149,7 +149,7 @@ export const outlineCtaButton = (href, label) => `
 // Alias — goldCtaButton now renders as primary black (keeps import compat)
 export const goldCtaButton = (href, label) => ctaButton(href, label);
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+//HELPERS 
 export const formatDate = (timestamp) =>
   new Date(timestamp).toLocaleDateString('en-IN', {
     year: 'numeric', month: 'long', day: 'numeric',
@@ -159,7 +159,7 @@ export const formatDate = (timestamp) =>
 export const formatINR = (amount) =>
   `&#8377;${Number(amount).toLocaleString('en-IN')}`;
 
-// ─── Payment badge — monochrome ───────────────────────────────────────────────
+// Payment badge
 export const paymentBadge = (method, isPaid) => {
   if (method === 'COD')
     return `<span style="display:inline-block;background:${B.black};color:${B.white};padding:5px 14px;font-size:9px;font-weight:400;letter-spacing:2px;text-transform:uppercase;">Cash on Delivery</span>`;
@@ -173,7 +173,7 @@ export const statusBadge = (label, dark = true) =>
     ? `<span style="display:inline-block;background:${B.black};color:${B.white};padding:5px 14px;font-size:9px;font-weight:400;letter-spacing:2px;text-transform:uppercase;">${label}</span>`
     : `<span style="display:inline-block;border:1px solid ${B.gray300};background:${B.white};color:${B.textMid};padding:5px 14px;font-size:9px;font-weight:400;letter-spacing:2px;text-transform:uppercase;">${label}</span>`;
 
-// ─── infoRow ──────────────────────────────────────────────────────────────────
+// info
 export const infoRow = (label, value, lastRow = false) => `
   <tr${lastRow ? '' : ` style="border-bottom:1px solid ${B.gray200};"`}>
     <td style="padding:14px 0;font-size:9px;color:${B.textLight};font-weight:400;letter-spacing:3px;text-transform:uppercase;width:45%;">${label}</td>
@@ -181,7 +181,7 @@ export const infoRow = (label, value, lastRow = false) => `
   </tr>
 `;
 
-// ─── orderItemRow ─────────────────────────────────────────────────────────────
+// orderItem
 export const orderItemRow = (item, isLast = false) => {
   const linePrice   = formatINR(item.price * item.quantity);
   const origPrice   = item.originalPrice ? formatINR(item.originalPrice * item.quantity) : null;
@@ -216,7 +216,7 @@ export const orderItemRow = (item, isLast = false) => {
 `;
 };
 
-// ─── addressBlock ─────────────────────────────────────────────────────────────
+// addressBlock
 export const addressBlock = (address) => `
   <p style="margin:0;font-size:13px;color:${B.textDark};line-height:2.1;font-weight:400;">
     <strong style="font-weight:500;">${address.firstName || ''} ${address.lastName || ''}</strong><br/>
@@ -227,7 +227,7 @@ export const addressBlock = (address) => `
   </p>
 `;
 
-// featureRow
+// feature
 export const featureRow = (title, desc, isLast = false) => `
   <tr>
     <td style="padding:${isLast ? '0' : '0 0 1px 0'};">
@@ -304,3 +304,60 @@ export const statusBanner = (label, dark = true) => `
     </td>
   </tr>
 `;
+
+// ABANDONED CART EMAIL
+export const abandonedCartEmailTemplate = ({ user, items = [], cartUrl = 'https://aharyas.com/cart', stage = 1 }) => {
+  const userName = user?.name ? user.name.split(' ')[0] : 'Valued Customer';
+  let title = 'Your Shopping cart is waiting';
+  let eyebrowText = 'CURATED SELECTION &nbsp;&middot;&nbsp; REMINDER';
+  let headline = 'Items in your bag are waiting';
+  let subtext = `We saved the handcrafted pieces in your cart so you can complete your order whenever you are ready.`;
+  let buttonLabel = 'RETURN TO CART';
+
+  if (stage === 2) {
+    title = 'Still thinking about your selection?';
+    eyebrowText = 'EXCLUSIVELY FOR YOU &nbsp;&middot;&nbsp; REMINDER';
+    headline = 'Your selection is still reserved';
+    subtext = `Don't miss out on your favorite artisan creations. Complete your purchase to secure your items before stock runs out.`;
+    buttonLabel = 'COMPLETE YOUR ORDER';
+  } else if (stage === 3) {
+    title = 'Your Aharyas selection is waiting';
+    eyebrowText = 'FINAL REMINDER &nbsp;&middot;&nbsp; AHARYAS HERITAGE';
+    headline = 'Final reminder for your saved items';
+    subtext = `This is a final reminder that your handcrafted selection is saved in your cart. Revisit your bag before these pieces are gone.`;
+    buttonLabel = 'VIEW YOUR BAG';
+  }
+
+  const itemsHtml = items.map((item, idx) => orderItemRow(item, idx === items.length - 1)).join('');
+
+  return `
+  ${emailHead(title)}
+  ${brandHeader()}
+  <tr>
+    <td style="padding:48px 56px 40px;background:${B.white};">
+      ${eyebrow(eyebrowText)}
+      <h2 style="margin:0 0 16px 0;font-family:Georgia,serif;font-size:24px;color:${B.black};font-weight:400;">Hello ${userName},</h2>
+      <p style="margin:0 0 28px 0;font-size:14px;color:${B.textMid};line-height:1.8;font-weight:400;">
+        ${subtext}
+      </p>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0 56px 40px;background:${B.white};">
+      <p style="margin:0 0 14px 0;font-size:9px;letter-spacing:4px;color:${B.textLight};text-transform:uppercase;">SAVED ITEMS</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        ${itemsHtml}
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0 56px 56px;background:${B.white};text-align:center;">
+      ${ctaButton(cartUrl, buttonLabel)}
+    </td>
+  </tr>
+  ${brandFooter}
+  ${emailClose}
+  `;
+};

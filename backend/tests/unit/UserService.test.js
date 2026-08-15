@@ -5,9 +5,9 @@ const mockUserModel = {
     aggregate: jest.fn(),
 };
 
-jest.unstable_mockModule('../../models/UserModel.js', () => ({ default: mockUserModel }));
+jest.unstable_mockModule('../../features/user/UserModel.js', () => ({ default: mockUserModel }));
 
-const { checkAccountLock, getUserAnalyticsData } = await import('../../services/UserService.js');
+const { checkAccountLock, getUserAnalyticsData } = await import('../../features/user/UserService.js');
 
 describe('UserService Unit Tests', () => {
     beforeEach(() => {

@@ -27,21 +27,21 @@ const mockOtpService = {
     checkOtpRequestLimit: jest.fn().mockResolvedValue({ allowed: true }),
 };
 
-jest.unstable_mockModule('../../models/UserModel.js', () => ({ default: mockUserModel }));
+jest.unstable_mockModule('../../features/user/UserModel.js', () => ({ default: mockUserModel }));
 jest.unstable_mockModule('bcryptjs', () => ({ default: mockBcrypt }));
 jest.unstable_mockModule('jsonwebtoken', () => ({ default: mockJwt }));
 jest.unstable_mockModule('validator', () => ({ default: mockValidator }));
 jest.unstable_mockModule('../../middlewares/sendOtpMail.js', () => ({ default: mockSendOtpMail }));
 jest.unstable_mockModule('../../middlewares/sendWelcomeMail.js', () => ({ default: mockSendWelcomeMail }));
 jest.unstable_mockModule('../../config/logger.js', () => ({ default: { error: jest.fn(), warn: jest.fn(), info: jest.fn() } }));
-jest.unstable_mockModule('../../services/OtpService.js', () => mockOtpService);
+jest.unstable_mockModule('../../features/user/OtpService.js', () => mockOtpService);
 
 const {
     createAccessToken, createRefreshToken,
     initiateRegistration, confirmRegistration,
     loginWithPassword, rotateRefreshToken,
     loginAdmin, initiateForgotPassword, confirmPasswordReset,
-} = await import('../../services/AuthService.js');
+} = await import('../../features/user/AuthService.js');
 
 beforeEach(() => {
     jest.clearAllMocks();

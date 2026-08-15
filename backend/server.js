@@ -19,14 +19,15 @@ const skipInDev = (_req) => IS_DEV;
 
 import parseCookies from './middlewares/cookies.js';
 import connectDB from './config/mongodb.js';
-import userRouter from './routes/UserRoute.js';
-import productRouter from './routes/ProductRoute.js';
-import cartRouter from './routes/CartRoute.js';
-import orderRouter from './routes/OrderRoute.js';
-import wishlistRouter from './routes/WishlistRoute.js';
-import chatRouter from './routes/ChatRoute.js';
-import sitemapRouter from './routes/SitemapRoute.js';
+import userRouter from './features/user/UserRoute.js';
+import productRouter from './features/product/ProductRoute.js';
+import cartRouter from './features/cart/CartRoute.js';
+import orderRouter from './features/order/OrderRoute.js';
+import wishlistRouter from './features/wishlist/WishlistRoute.js';
+import chatRouter from './features/chat/ChatRoute.js';
+import sitemapRouter from './features/seo/SitemapRoute.js';
 import { initAnalyticsSocket } from './config/socket.js';
+import { startAbandonedCartWorker } from './features/cart/abandonedCartWorker.js';
 
 // App Config
 const app = express();
@@ -157,6 +158,9 @@ app.use((err, req, res, _next) => {
     });
 });
 
-httpServer.listen(port, () => console.log(`Server started on PORT: ${port}`));
+httpServer.listen(port, () => {
+    console.log(`Server started on PORT: ${port}`);
+    startAbandonedCartWorker();
+});
 
 export default app;

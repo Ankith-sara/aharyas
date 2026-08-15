@@ -12,6 +12,10 @@ const mockOrderModel = {
     findByIdAndUpdate: jest.fn(),
 };
 
+const mockCartModel = {
+    findOneAndUpdate: jest.fn().mockResolvedValue({}),
+};
+
 const mockImagekit = { files: { upload: jest.fn() } };
 
 // Mock fs to simulate valid/invalid magic bytes
@@ -28,14 +32,15 @@ const mockFs = {
     }
 };
 
-jest.unstable_mockModule('../models/UserModel.js', () => ({ default: mockUserModel }));
-jest.unstable_mockModule('../models/OrderModel.js', () => ({ default: mockOrderModel }));
+jest.unstable_mockModule('../features/user/UserModel.js', () => ({ default: mockUserModel }));
+jest.unstable_mockModule('../features/order/OrderModel.js', () => ({ default: mockOrderModel }));
+jest.unstable_mockModule('../features/cart/CartModel.js', () => ({ default: mockCartModel }));
 jest.unstable_mockModule('../config/imagekit.js', () => ({ default: mockImagekit }));
 jest.unstable_mockModule('fs', () => ({ default: mockFs }));
 
 // Import the services
-const { updateProfile, deleteProfile } = await import('../services/ProfileService.js');
-const { verifyAndFinaliseRazorpayOrder } = await import('../services/OrderService.js');
+const { updateProfile, deleteProfile } = await import('../features/user/ProfileService.js');
+const { verifyAndFinaliseRazorpayOrder } = await import('../features/order/OrderService.js');
 
 beforeEach(() => {
     jest.clearAllMocks();
